@@ -3,9 +3,10 @@
 Versões: React Native 0.87.1, React 19.2.3, `zephyr-metro-plugin@1.2.4`,
 `@module-federation/metro`, Node 22, macOS 26 / Xcode 26.
 
-Deploy funcionando: `https://aroldogooulart-14-gabarita-mobile-react-native-st-1f2c46a26-ze.zephyrcloud.app/`
-(o `mf-manifest.json` e os bundles respondem 200; a raiz dá 404 porque o que se
-publica é o artefato, não um site).
+Publicado como `questiona.questiona.questoes` (app.projeto.org). Último deploy:
+`https://aroldogooulart-19-questiona-questiona-questoes-314546747-ze.zephyrcloud.app/`
+(o `mf-manifest.json` e os quatro bundles respondem 200; a raiz dá 404 porque o
+que se publica é o artefato, não um site).
 
 ## Módulos federados
 
@@ -100,7 +101,33 @@ Duas sugestões, em ordem de valor:
 2. Corrigir o README e o TESTING.md do pacote, que hoje descrevem um fluxo que
    não entrega o que prometem.
 
-### 2. Repositório git com remote origin é obrigatório, e isso não está na página do Metro
+### 2. A organização vem do remote git, e o `zephyr.config.js` que corrige isso não está documentado
+
+Sem configuração, o Zephyr monta o identificador como `<app>.<repo>.<org>` lendo
+o remote: um repositório em `github.com/goul4rt/mobile-react-native-standart`
+publica em `gabarita.mobile-react-native-standart.goul4rt`. Quem criou uma
+organização própria no dashboard não encontra os deploys ali, e o dashboard não
+dá pista nenhuma: mostra "No projects found" enquanto os builds sobem para outra
+org, com sucesso.
+
+A saída existe e não aparece na documentação. Achei lendo os tipos do pacote
+(`zephyr-agent/dist/lib/build-context/zephyr-config.d.mts`):
+
+```js
+// zephyr.config.js na raiz do projeto
+module.exports = {
+  org: 'questoes',
+  project: 'questiona',
+  appName: 'questiona',
+};
+```
+
+Os três campos sobrescrevem o que vem do git e do `package.json`. A busca por
+"zephyr.config.js" na documentação não retorna essa página, e nenhuma mensagem
+do build menciona o arquivo. Sugestão: imprimir no primeiro build de um projeto
+qual org e projeto foram inferidos, junto do caminho para sobrescrever.
+
+### 3. Repositório git com remote origin é obrigatório, e isso não está na página do Metro
 
 Sem remote configurado:
 
@@ -113,7 +140,7 @@ O build prossegue mas se declara inválido para produção. `git init` local nã
 basta. Faz sentido — o Zephyr deriva org e projeto dali, e o nome publicado é
 `<app>.<repo>.<org>` — mas é um pré-requisito forte que só aparece quando falha.
 
-### 3. Sem TTY, a URL de autenticação nunca é impressa
+### 4. Sem TTY, a URL de autenticação nunca é impressa
 
 Em `zephyr-agent/dist/lib/auth/login.mjs`:
 
@@ -132,7 +159,7 @@ A saída documentada para CI é `ZE_SECRET_TOKEN`, mas obtê-lo exige autenticar
 antes. Quem começa por um ambiente sem TTY fica sem caminho. Imprimir a URL
 também em modo não interativo resolveria.
 
-### 4. Ruído no log
+### 5. Ruído no log
 
 Todo build repete o aviso de `zephyr:dependencies` ausente, mesmo num app sem
 remotes, onde a ausência é a configuração correta. E o comando emite

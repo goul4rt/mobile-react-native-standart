@@ -11,8 +11,8 @@ const pkg = require('./package.json');
  * build roda, autentica e não sobe nada.
  */
 const mfConfig = {
-  name: 'Gabarita',
-  filename: 'Gabarita.bundle',
+  name: 'Questiona',
+  filename: 'Questiona.bundle',
   /**
    * Um expose por módulo do design (§7): cada um muda por motivo próprio e
    * pode ganhar deploy independente sem tocar nos outros.
