@@ -7,23 +7,22 @@ import {
   StyleSheet,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  AREA_LABEL,
   fetchMinhasEstatisticas,
   fetchTaxonomy,
   type AreaResumo,
   type MinhasEstatisticas,
 } from '../../shared/api/client';
 import { useAuth } from '../../shared/auth/AuthContext';
-import { border, palettes, radius, space, type } from '../../shared/ui-kit/tokens';
+import { border, radius, space } from '../../shared/ui-kit/tokens';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { rotuloArea, t } from '../../shared/i18n';
 
 export function HomeScreen({ onEstudar }: { onEstudar: (area: string) => void }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   const { usuario, token } = useAuth();
 
   const [areas, setAreas] = useState<AreaResumo[] | null>(null);
@@ -63,7 +62,7 @@ export function HomeScreen({ onEstudar }: { onEstudar: (area: string) => void })
     return (
       <SafeAreaView style={[styles.centro, { backgroundColor: p.bg }]} edges={['top']}>
         <Text style={[type.heading, { color: p.text, textAlign: 'center' }]}>
-          Sem internet.{'\n'}Tudo salvo aqui — sincronizamos depois.
+          {t('comum.semInternet')}
         </Text>
         <Pressable
           testID="tentar-de-novo"
@@ -72,7 +71,7 @@ export function HomeScreen({ onEstudar }: { onEstudar: (area: string) => void })
             styles.botao,
             { backgroundColor: pressed ? p.primaryPressed : p.primary, marginTop: space.xl },
           ]}>
-          <Text style={[type.label, { color: p.onPrimary }]}>Tentar de novo</Text>
+          <Text style={[type.label, { color: p.onPrimary }]}>{t('comum.tentarDeNovo')}</Text>
         </Pressable>
       </SafeAreaView>
     );
@@ -94,7 +93,7 @@ export function HomeScreen({ onEstudar }: { onEstudar: (area: string) => void })
           <RefreshControl refreshing={false} onRefresh={carregar} tintColor={p.primary} />
         }>
         <Text style={[type.title, { color: p.text }]}>
-          {primeiroNome ? `Oi, ${primeiroNome}` : 'Oi'}
+          {primeiroNome ? t('home.saudacao', { nome: primeiroNome }) : t('home.saudacaoSemNome')}
         </Text>
 
         {continuar && (
@@ -106,10 +105,10 @@ export function HomeScreen({ onEstudar }: { onEstudar: (area: string) => void })
               { backgroundColor: pressed ? p.primaryPressed : p.primary },
             ]}>
             <Text style={[type.micro, { color: p.onPrimary, opacity: 0.8 }]}>
-              CONTINUAR DE ONDE PAROU
+              {t('home.continuar')}
             </Text>
             <Text style={[type.heading, { color: p.onPrimary, marginTop: space.xs }]}>
-              {AREA_LABEL[continuar[0]] ?? continuar[0]}
+              {rotuloArea(continuar[0])}
             </Text>
             <Text style={[type.caption, { color: p.onPrimary, opacity: 0.85 }]}>
               {continuar[1].total} respondidas ·{' '}
@@ -119,7 +118,7 @@ export function HomeScreen({ onEstudar }: { onEstudar: (area: string) => void })
         )}
 
         <Text style={[type.micro, { color: p.textMuted, marginTop: space.xl }]}>
-          ESTUDAR POR ÁREA
+          {t('home.estudarPorArea')}
         </Text>
         <View style={{ gap: space.md, marginTop: space.md }}>
           {areas.map((area) => {
@@ -135,7 +134,7 @@ export function HomeScreen({ onEstudar }: { onEstudar: (area: string) => void })
                 ]}>
                 <View style={{ flex: 1 }}>
                   <Text style={[type.heading, { color: p.text }]}>
-                    {AREA_LABEL[area.code] ?? area.label}
+                    {rotuloArea(area.code)}
                   </Text>
                   <Text style={[type.caption, { color: p.textMuted }]}>
                     {meu
@@ -150,7 +149,7 @@ export function HomeScreen({ onEstudar }: { onEstudar: (area: string) => void })
 
         {semana && semana.total > 0 && (
           <View style={[styles.resumo, { backgroundColor: p.surfaceAlt }]}>
-            <Text style={[type.micro, { color: p.textMuted }]}>ESTA SEMANA</Text>
+            <Text style={[type.micro, { color: p.textMuted }]}>{t('home.estaSemana')}</Text>
             <Text style={[type.body, { color: p.text }]}>
               {semana.total} {semana.total === 1 ? 'questão' : 'questões'} ·{' '}
               {Math.round((semana.correct / semana.total) * 100)}% de acerto

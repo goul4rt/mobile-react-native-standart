@@ -6,6 +6,7 @@ import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import { SessaoScreen } from '../src/modules/questoes/SessaoScreen';
 import { AuthProvider } from '../src/shared/auth/AuthContext';
+import { PreferenciasProvider } from '../src/shared/ui-kit/PreferenciasContext';
 import type { Question } from '../src/shared/api/client';
 
 jest.mock('react-native-safe-area-context', () => {
@@ -70,9 +71,11 @@ async function render(questions: Question[]) {
   await act(async () => {
     // FimSessao sincroniza o lote pela sessão, então precisa do provider.
     tree = ReactTestRenderer.create(
-      <AuthProvider>
-        <SessaoScreen area="CH" onSair={() => {}} />
-      </AuthProvider>,
+      <PreferenciasProvider>
+        <AuthProvider>
+          <SessaoScreen area="CH" onSair={() => {}} />
+        </AuthProvider>
+      </PreferenciasProvider>,
     );
   });
   montada = tree;
@@ -209,9 +212,11 @@ describe('SessaoScreen', () => {
     let tree!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
       tree = ReactTestRenderer.create(
-        <AuthProvider>
-          <SessaoScreen area="CH" onSair={() => {}} />
-        </AuthProvider>,
+        <PreferenciasProvider>
+          <AuthProvider>
+            <SessaoScreen area="CH" onSair={() => {}} />
+          </AuthProvider>
+        </PreferenciasProvider>,
       );
     });
     montada = tree;

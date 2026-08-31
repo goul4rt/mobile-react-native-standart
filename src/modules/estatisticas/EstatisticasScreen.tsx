@@ -7,20 +7,20 @@ import {
   StyleSheet,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  AREA_LABEL,
   fetchMinhasEstatisticas,
   fetchPopulacaoPorArea,
   type EstatisticaPopulacao,
   type MinhasEstatisticas,
 } from '../../shared/api/client';
 import { useAuth } from '../../shared/auth/AuthContext';
-import { border, palettes, radius, space, type } from '../../shared/ui-kit/tokens';
+import { border, radius, space } from '../../shared/ui-kit/tokens';
 import { BarraAcerto, ComparacaoArea, LinhaEvolucao } from './graficos';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { rotuloArea, t } from '../../shared/i18n';
 
 type Aba = 'voce' | 'outros';
 
@@ -31,8 +31,7 @@ function formatarTempo(ms: number | null): string {
 }
 
 export function EstatisticasScreen() {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   const { token } = useAuth();
 
   const [aba, setAba] = useState<Aba>('voce');
@@ -71,13 +70,13 @@ export function EstatisticasScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: p.bg }} edges={['top']}>
-      <Text style={[type.title, { color: p.text, paddingHorizontal: space.xxl }]}>Estatísticas</Text>
+      <Text style={[type.title, { color: p.text, paddingHorizontal: space.xxl }]}>{t('estatisticas.titulo')}</Text>
 
       <View style={[styles.abas, { borderBottomColor: p.border }]}>
         {(
           [
-            ['voce', 'Você'],
-            ['outros', 'Você e os outros'],
+            ['voce', t('estatisticas.abaVoce')],
+            ['outros', t('estatisticas.abaOutros')],
           ] as const
         ).map(([chave, rotulo]) => (
           <Pressable
@@ -100,17 +99,17 @@ export function EstatisticasScreen() {
         {respondidas === 0 ? (
           <View style={[styles.vazio, { borderColor: p.border }]}>
             <Text style={[type.body, { color: p.textSecondary }]}>
-              Responda algumas questões e seus números aparecem aqui.
+              {t('estatisticas.vazio')}
             </Text>
           </View>
         ) : aba === 'voce' ? (
           <>
-            <Secao titulo="Acerto por área">
+            <Secao titulo={t('estatisticas.acertoPorArea')}>
               <View style={{ gap: space.lg }}>
                 {minhas!.byArea.map((a) => (
                   <BarraAcerto
                     key={a.area}
-                    rotulo={AREA_LABEL[a.area] ?? a.area}
+                    rotulo={rotuloArea(a.area)}
                     acertos={a.correct}
                     total={a.total}
                   />
@@ -118,7 +117,7 @@ export function EstatisticasScreen() {
               </View>
             </Secao>
 
-            <Secao titulo="Evolução · últimas semanas">
+            <Secao titulo={t('estatisticas.evolucao')}>
               <LinhaEvolucao
                 pontos={[...minhas!.weekly]
                   .reverse()
@@ -133,11 +132,11 @@ export function EstatisticasScreen() {
             </Secao>
 
             <View style={styles.numeros}>
-              <Numero valor={formatarTempo(minhas!.overall.avg_time_ms)} rotulo="tempo médio" />
-              <Numero valor={String(respondidas)} rotulo="questões respondidas" />
+              <Numero valor={formatarTempo(minhas!.overall.avg_time_ms)} rotulo={t('estatisticas.tempoMedio')} />
+              <Numero valor={String(respondidas)} rotulo={t('estatisticas.questoesRespondidas')} />
               <Numero
                 valor={`${Math.round((minhas!.overall.correct / respondidas) * 100)}%`}
-                rotulo="de acerto"
+                rotulo={t('estatisticas.deAcerto')}
               />
             </View>
           </>
@@ -151,7 +150,7 @@ export function EstatisticasScreen() {
                     key={minha.area}
                     style={[styles.vazio, { borderColor: p.border, marginBottom: space.lg }]}>
                     <Text style={[type.heading, { color: p.text, marginBottom: space.xs }]}>
-                      {AREA_LABEL[minha.area] ?? minha.area}
+                      {rotuloArea(minha.area)}
                     </Text>
                     <Text style={[type.caption, { color: p.textSecondary }]}>
                       Ainda faltam respostas de outros alunos pra comparar. A comparação abre quando
@@ -163,7 +162,7 @@ export function EstatisticasScreen() {
               return (
                 <View key={minha.area} style={{ marginBottom: space.xl }}>
                   <ComparacaoArea
-                    rotulo={AREA_LABEL[minha.area] ?? minha.area}
+                    rotulo={rotuloArea(minha.area)}
                     voce={minha.total > 0 ? minha.correct / minha.total : null}
                     media={geral.accuracy}
                     usuarios={geral.users}
@@ -172,7 +171,7 @@ export function EstatisticasScreen() {
               );
             })}
             <Text style={[type.micro, { color: p.textMuted }]}>
-              Comparações são sempre com a média geral — nunca com uma pessoa específica.
+              {t('estatisticas.rodapeComparacao')}
             </Text>
           </>
         )}
@@ -182,8 +181,7 @@ export function EstatisticasScreen() {
 }
 
 function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   return (
     <View style={{ marginBottom: space.section }}>
       <Text style={[type.micro, { color: p.textMuted, marginBottom: space.md }]}>
@@ -195,8 +193,7 @@ function Secao({ titulo, children }: { titulo: string; children: React.ReactNode
 }
 
 function Numero({ valor, rotulo }: { valor: string; rotulo: string }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   return (
     <View style={{ flex: 1, alignItems: 'center', gap: space.xs }}>
       <Text style={[type.title, { color: p.text }]}>{valor}</Text>

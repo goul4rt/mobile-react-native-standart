@@ -1,16 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchTaxonomy, type AreaResumo } from '../../shared/api/client';
-import { border, palettes, radius, space, type } from '../../shared/ui-kit/tokens';
+import { border, radius, space } from '../../shared/ui-kit/tokens';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { t } from '../../shared/i18n';
 
 /**
  * A lista vem da taxonomia do acervo, não de uma constante: o filtro só oferece
  * o que existe pra responder, com a contagem real.
  */
 export function EscolhaArea({ onEscolher }: { onEscolher: (area: string) => void }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
 
   const [areas, setAreas] = useState<AreaResumo[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -28,13 +29,13 @@ export function EscolhaArea({ onEscolher }: { onEscolher: (area: string) => void
   return (
     <SafeAreaView style={[styles.tela, { backgroundColor: p.bg }]} edges={['top', 'bottom']}>
       <View style={styles.conteudo}>
-        <Text style={[type.display, { color: p.text }]}>O que você quer estudar hoje?</Text>
-        <Text style={[type.caption, { color: p.textMuted }]}>Dá pra mudar quando quiser.</Text>
+        <Text style={[type.display, { color: p.text }]}>{t('escolha.pergunta')}</Text>
+        <Text style={[type.caption, { color: p.textMuted }]}>{t('escolha.subtitulo')}</Text>
 
         {erro && (
           <View style={{ marginTop: space.xl, gap: space.lg }}>
             <Text style={[type.body, { color: p.textSecondary }]}>
-              Sem internet. Tudo salvo aqui — sincronizamos depois.
+              {t('comum.semInternet')}
             </Text>
             {/* Sem isto o aluno fica preso: só fechando e reabrindo o app. */}
             <Pressable
@@ -45,7 +46,7 @@ export function EscolhaArea({ onEscolher }: { onEscolher: (area: string) => void
                 styles.botao,
                 { backgroundColor: pressed ? p.primaryPressed : p.primary },
               ]}>
-              <Text style={[type.label, { color: p.onPrimary }]}>Tentar de novo</Text>
+              <Text style={[type.label, { color: p.onPrimary }]}>{t('comum.tentarDeNovo')}</Text>
             </Pressable>
           </View>
         )}

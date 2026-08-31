@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, useColorScheme } from 'react-native';
-import { border, palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { border, radius, space, TOUCH_TARGET } from '../../shared/ui-kit/tokens';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { t } from '../../shared/i18n';
 
 export function Campo({
   rotulo,
@@ -8,8 +10,7 @@ export function Campo({
   segredo,
   ...props
 }: React.ComponentProps<typeof TextInput> & { rotulo: string; erro?: string; segredo?: boolean }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   const [focado, setFocado] = useState(false);
   const [revelado, setRevelado] = useState(false);
 
@@ -36,7 +37,7 @@ export function Campo({
         {segredo && (
           <Pressable hitSlop={8} onPress={() => setRevelado((v) => !v)}>
             <Text style={[type.caption, { color: p.textSecondary }]}>
-              {revelado ? 'ocultar' : 'mostrar'}
+              {revelado ? t('login.ocultar') : t('login.mostrar')}
             </Text>
           </Pressable>
         )}

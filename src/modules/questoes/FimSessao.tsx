@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { enviarRespostas, fetchPopulation, type Resposta } from '../../shared/api/client';
 import { useAuth } from '../../shared/auth/AuthContext';
-import { border, palettes, radius, space, type } from '../../shared/ui-kit/tokens';
+import { border, radius, space } from '../../shared/ui-kit/tokens';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { t } from '../../shared/i18n';
 
 function formatTime(ms: number) {
   const total = Math.round(ms / 1000);
@@ -11,8 +13,7 @@ function formatTime(ms: number) {
 }
 
 function Metrica({ valor, rotulo, cor }: { valor: string; rotulo: string; cor: string }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   return (
     <View style={styles.metrica}>
       <Text style={[type.title, { color: cor }]}>{valor}</Text>
@@ -32,8 +33,7 @@ export function FimSessao({
   onRepetir: () => void;
   onSair: () => void;
 }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   const { token } = useAuth();
   const [sincronizacao, setSincronizacao] = useState<'enviando' | 'ok' | 'falhou'>(
     respostas.length > 0 ? 'enviando' : 'ok',
@@ -86,23 +86,23 @@ export function FimSessao({
   return (
     <SafeAreaView style={[styles.tela, { backgroundColor: p.bg }]} edges={['top', 'bottom']}>
       <View style={styles.conteudo}>
-        <Text style={[type.display, { color: p.text }]}>Fim da sessão</Text>
+        <Text style={[type.display, { color: p.text }]}>{t('fim.titulo')}</Text>
 
         <View style={[styles.cartao, { backgroundColor: p.surface, borderColor: p.border }]}>
-          <Metrica valor={String(acertos)} rotulo="acertos" cor={p.successText} />
-          <Metrica valor={String(erros)} rotulo="erros" cor={erros > 0 ? p.dangerText : p.textMuted} />
-          <Metrica valor={formatTime(tempo)} rotulo="tempo" cor={p.text} />
+          <Metrica valor={String(acertos)} rotulo={t('fim.acertos')} cor={p.successText} />
+          <Metrica valor={String(erros)} rotulo={t('fim.erros')} cor={erros > 0 ? p.dangerText : p.textMuted} />
+          <Metrica valor={formatTime(tempo)} rotulo={t('fim.tempo')} cor={p.text} />
         </View>
 
         {media ? (
           <View style={[styles.cartao, styles.comparacao, { backgroundColor: p.surface, borderColor: p.border }]}>
-            <Text style={[type.heading, { color: p.text }]}>Você e os outros</Text>
+            <Text style={[type.heading, { color: p.text }]}>{t('fim.voceEOsOutros')}</Text>
             <View style={styles.linha}>
-              <Text style={[type.body, { color: p.textSecondary }]}>Você</Text>
+              <Text style={[type.body, { color: p.textSecondary }]}>{t('fim.voce')}</Text>
               <Text style={[type.label, { color: p.text }]}>{Math.round(minhaTaxa * 100)}%</Text>
             </View>
             <View style={styles.linha}>
-              <Text style={[type.body, { color: p.textSecondary }]}>Média</Text>
+              <Text style={[type.body, { color: p.textSecondary }]}>{t('fim.media')}</Text>
               <Text style={[type.label, { color: p.text }]}>{Math.round(media.accuracy * 100)}%</Text>
             </View>
             <Text style={[type.micro, { color: p.textMuted }]}>
@@ -112,7 +112,7 @@ export function FimSessao({
         ) : (
           <View style={[styles.cartao, styles.comparacao, { borderColor: p.border, borderStyle: 'dashed' }]}>
             <Text style={[type.body, { color: p.textSecondary }]}>
-              Ainda faltam respostas de outros alunos pra comparar.
+              {t('fim.semAmostra')}
             </Text>
           </View>
         )}
@@ -125,7 +125,7 @@ export function FimSessao({
             styles.botao,
             { backgroundColor: pressed ? p.primaryPressed : p.primary },
           ]}>
-          <Text style={[type.label, { color: p.onPrimary }]}>Mais 10 questões</Text>
+          <Text style={[type.label, { color: p.onPrimary }]}>{t('fim.maisDez')}</Text>
         </Pressable>
 
         {/* Sair enquanto o lote sobe deixaria a home com número velho. */}
@@ -137,7 +137,7 @@ export function FimSessao({
           {sincronizacao === 'enviando' ? (
             <ActivityIndicator color={p.textSecondary} />
           ) : (
-            <Text style={[type.label, { color: p.textSecondary }]}>Voltar pra home</Text>
+            <Text style={[type.label, { color: p.textSecondary }]}>{t('fim.voltarHome')}</Text>
           )}
         </Pressable>
 
@@ -145,7 +145,7 @@ export function FimSessao({
           <Text
             testID="sync-pendente"
             style={[type.micro, { color: p.textMuted, textAlign: 'center' }]}>
-            {respostas.length} respostas aguardando conexão.
+            {t('fim.aguardandoConexao', { total: respostas.length })}
           </Text>
         )}
       </View>

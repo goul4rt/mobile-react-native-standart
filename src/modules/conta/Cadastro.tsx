@@ -8,18 +8,18 @@ import {
   StyleSheet,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../shared/auth/AuthContext';
-import { border, palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
+import { border, radius, space, TOUCH_TARGET } from '../../shared/ui-kit/tokens';
 import { Campo } from './Campo';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { t } from '../../shared/i18n';
 
 const SENHA_MINIMA = 8;
 
 export function Cadastro({ onVoltar, onEntrar }: { onVoltar: () => void; onEntrar: () => void }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   const { registrar } = useAuth();
 
   const [nome, setNome] = useState('');
@@ -59,19 +59,19 @@ export function Cadastro({ onVoltar, onEntrar }: { onVoltar: () => void; onEntra
             <Text style={[type.label, { color: p.textSecondary }]}>←</Text>
           </Pressable>
 
-          <Text style={[type.title, { color: p.text, marginBottom: space.xl }]}>Criar conta</Text>
+          <Text style={[type.title, { color: p.text, marginBottom: space.xl }]}>{t('cadastro.titulo')}</Text>
 
           <View style={{ gap: space.lg }}>
             <Campo
-              rotulo="Nome"
+              rotulo={t('cadastro.nome')}
               testID="campo-nome"
-              placeholder="Como quer ser chamado"
+              placeholder={t('cadastro.nomePlaceholder')}
               value={nome}
               onChangeText={setNome}
               autoCapitalize="words"
             />
             <Campo
-              rotulo="E-mail"
+              rotulo={t('cadastro.email')}
               testID="campo-email"
               placeholder="seu@email.com"
               value={email}
@@ -81,9 +81,9 @@ export function Cadastro({ onVoltar, onEntrar }: { onVoltar: () => void; onEntra
               autoComplete="email"
             />
             <Campo
-              rotulo="Senha"
+              rotulo={t('cadastro.senha')}
               testID="campo-senha"
-              placeholder={`mínimo ${SENHA_MINIMA} caracteres`}
+              placeholder={t('cadastro.senhaPlaceholder', { minimo: SENHA_MINIMA })}
               value={senha}
               onChangeText={setSenha}
               segredo
@@ -108,7 +108,7 @@ export function Cadastro({ onVoltar, onEntrar }: { onVoltar: () => void; onEntra
               {aceite && <Text style={[type.caption, { color: p.onPrimary }]}>✓</Text>}
             </View>
             <Text style={[type.caption, { color: p.textSecondary, flex: 1 }]}>
-              Li e aceito os Termos de Uso e a Política de Privacidade.
+              {t('cadastro.aceite')}
             </Text>
           </Pressable>
 
@@ -132,19 +132,19 @@ export function Cadastro({ onVoltar, onEntrar }: { onVoltar: () => void; onEntra
               <ActivityIndicator color={p.onPrimary} />
             ) : (
               <Text style={[type.label, { color: podeEnviar ? p.onPrimary : p.textMuted }]}>
-                Criar conta
+                {t('cadastro.criarConta')}
               </Text>
             )}
           </Pressable>
 
           {!aceite && (
             <Text style={[type.micro, { color: p.textMuted, textAlign: 'center' }]}>
-              O botão ativa quando o aceite é marcado.
+              {t('cadastro.aceiteAviso')}
             </Text>
           )}
 
           <Pressable onPress={onEntrar} testID="ir-para-login" style={styles.botaoPlano}>
-            <Text style={[type.caption, { color: p.textSecondary }]}>Já tenho conta</Text>
+            <Text style={[type.caption, { color: p.textSecondary }]}>{t('abertura.jaTenhoConta')}</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>

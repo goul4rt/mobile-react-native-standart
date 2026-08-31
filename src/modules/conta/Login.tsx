@@ -8,16 +8,16 @@ import {
   StyleSheet,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../shared/auth/AuthContext';
-import { palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
+import { radius, space, TOUCH_TARGET } from '../../shared/ui-kit/tokens';
 import { Campo } from './Campo';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { t } from '../../shared/i18n';
 
 export function Login({ onVoltar, onCriarConta }: { onVoltar: () => void; onCriarConta: () => void }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   const { entrar } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -52,11 +52,11 @@ export function Login({ onVoltar, onCriarConta }: { onVoltar: () => void; onCria
             <Text style={[type.label, { color: p.textSecondary }]}>←</Text>
           </Pressable>
 
-          <Text style={[type.title, { color: p.text, marginBottom: space.xl }]}>Entrar</Text>
+          <Text style={[type.title, { color: p.text, marginBottom: space.xl }]}>{t('login.titulo')}</Text>
 
           <View style={{ gap: space.lg }}>
             <Campo
-              rotulo="E-mail"
+              rotulo={t('cadastro.email')}
               testID="campo-email"
               placeholder="seu@email.com"
               value={email}
@@ -66,9 +66,9 @@ export function Login({ onVoltar, onCriarConta }: { onVoltar: () => void; onCria
               autoComplete="email"
             />
             <Campo
-              rotulo="Senha"
+              rotulo={t('cadastro.senha')}
               testID="campo-senha"
-              placeholder="sua senha"
+              placeholder={t('login.senhaPlaceholder')}
               value={senha}
               onChangeText={setSenha}
               segredo
@@ -92,12 +92,12 @@ export function Login({ onVoltar, onCriarConta }: { onVoltar: () => void; onCria
             {enviando ? (
               <ActivityIndicator color={p.onPrimary} />
             ) : (
-              <Text style={[type.label, { color: podeEnviar ? p.onPrimary : p.textMuted }]}>Entrar</Text>
+              <Text style={[type.label, { color: podeEnviar ? p.onPrimary : p.textMuted }]}>{t('login.titulo')}</Text>
             )}
           </Pressable>
 
           <Pressable onPress={onCriarConta} testID="ir-para-cadastro" style={styles.botaoPlano}>
-            <Text style={[type.caption, { color: p.textSecondary }]}>Criar uma conta</Text>
+            <Text style={[type.caption, { color: p.textSecondary }]}>{t('login.criarUmaConta')}</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>

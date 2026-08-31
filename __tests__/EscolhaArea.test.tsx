@@ -5,6 +5,7 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import { EscolhaArea } from '../src/modules/questoes/EscolhaArea';
+import { PreferenciasProvider } from '../src/shared/ui-kit/PreferenciasContext';
 
 jest.mock('react-native-safe-area-context', () => {
   const { View } = require('react-native');
@@ -30,7 +31,11 @@ test('falhou e voltou: o botão recarrega sem reiniciar o app', async () => {
 
   let tree!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
-    tree = ReactTestRenderer.create(<EscolhaArea onEscolher={() => {}} />);
+    tree = ReactTestRenderer.create(
+      <PreferenciasProvider>
+        <EscolhaArea onEscolher={() => {}} />
+      </PreferenciasProvider>,
+    );
   });
 
   expect(textOf(tree.toJSON())).toContain('Sem internet.');

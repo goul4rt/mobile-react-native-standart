@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import type { RichContent } from '../../shared/api/client';
-import { palettes, radius, space, type } from '../../shared/ui-kit/tokens';
+import { radius, space } from '../../shared/ui-kit/tokens';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
 
 const IMAGE = /!\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/;
 
@@ -17,8 +18,7 @@ const INLINE = /(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(\[[^\]]+\]\([^)\s]+\))/g;
  * fica num contêiner `surface` e leva brightness 0.88, senão queima a tela.
  */
 function ScannedImage({ url }: { url: string }) {
-  const dark = useColorScheme() === 'dark';
-  const palette = dark ? palettes.dark : palettes.light;
+  const { p: palette, type, escuro: dark } = useTema();
   const [ratio, setRatio] = useState(1.6);
 
   useEffect(() => {
@@ -108,8 +108,7 @@ function toBlocks(body: string): string[] {
 }
 
 export function RichText({ content, variant = 'body' }: { content: RichContent; variant?: 'body' | 'alternative' }) {
-  const dark = useColorScheme() === 'dark';
-  const palette = dark ? palettes.dark : palettes.light;
+  const { p: palette, type, escuro: dark } = useTema();
   const textStyle = { ...type[variant], color: palette.text };
 
   return (

@@ -1,7 +1,9 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { palettes, radius, space, type } from '../../shared/ui-kit/tokens';
+import { radius, space } from '../../shared/ui-kit/tokens';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { t } from '../../shared/i18n';
 
 export function Abertura({
   onCriarConta,
@@ -10,8 +12,7 @@ export function Abertura({
   onCriarConta: () => void;
   onEntrar: () => void;
 }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
 
   return (
     <SafeAreaView style={[styles.tela, { backgroundColor: p.bg }]} edges={['top', 'bottom']}>
@@ -21,7 +22,7 @@ export function Abertura({
         </View>
         <Text style={[type.display, { color: p.text, marginTop: space.xl }]}>Gabarita</Text>
         <Text style={[type.body, { color: p.textSecondary, marginTop: space.sm }]}>
-          Estude por questões do ENEM. Uma de cada vez.
+          {t('abertura.tagline')}
         </Text>
       </View>
 
@@ -34,7 +35,7 @@ export function Abertura({
             styles.botao,
             { backgroundColor: pressed ? p.primaryPressed : p.primary },
           ]}>
-          <Text style={[type.label, { color: p.onPrimary }]}>Criar conta</Text>
+          <Text style={[type.label, { color: p.onPrimary }]}>{t('abertura.criarConta')}</Text>
         </Pressable>
 
         <Pressable
@@ -42,7 +43,7 @@ export function Abertura({
           onPress={onEntrar}
           accessibilityRole="button"
           style={styles.botaoPlano}>
-          <Text style={[type.label, { color: p.textSecondary }]}>Já tenho conta</Text>
+          <Text style={[type.label, { color: p.textSecondary }]}>{t('abertura.jaTenhoConta')}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
-import { palettes, radius, space, type } from '../../shared/ui-kit/tokens';
+import { radius, space } from '../../shared/ui-kit/tokens';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
+import { t } from '../../shared/i18n';
 
 /** Barra horizontal de acerto. Só barra e linha no app — sem radar nem gauge. */
 export function BarraAcerto({
@@ -15,8 +17,7 @@ export function BarraAcerto({
   total: number;
   cor?: string;
 }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   const pct = total > 0 ? acertos / total : 0;
 
   return (
@@ -33,7 +34,7 @@ export function BarraAcerto({
         />
       </View>
       <Text style={[type.micro, { color: p.textMuted }]}>
-        {total > 0 ? `${acertos} de ${total} questões` : 'nenhuma resposta ainda'}
+        {total > 0 ? t('estatisticas.deQuestoes', { acertos, total }) : t('estatisticas.nenhumaResposta')}
       </Text>
     </View>
   );
@@ -51,14 +52,13 @@ export function ComparacaoArea({
   media: number;
   usuarios: number;
 }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
 
   return (
     <View style={{ gap: space.sm }}>
       <Text style={[type.heading, { color: p.text }]}>{rotulo}</Text>
-      <Barra rotulo="você" valor={voce} cor={p.primary} />
-      <Barra rotulo="média" valor={media} cor={p.textMuted} />
+      <Barra rotulo={t('fim.voce')} valor={voce} cor={p.primary} />
+      <Barra rotulo={t('fim.media')} valor={media} cor={p.textMuted} />
       <Text style={[type.micro, { color: p.textMuted }]}>
         baseado em {usuarios.toLocaleString('pt-BR')} {usuarios === 1 ? 'pessoa' : 'pessoas'}
       </Text>
@@ -67,8 +67,7 @@ export function ComparacaoArea({
 }
 
 function Barra({ rotulo, valor, cor }: { rotulo: string; valor: number | null; cor: string }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   return (
     <View style={styles.parLinha}>
       <Text style={[type.caption, { color: p.textSecondary, width: 52 }]}>{rotulo}</Text>
@@ -87,8 +86,7 @@ function Barra({ rotulo, valor, cor }: { rotulo: string; valor: number | null; c
  * ponto só não mostra evolução nenhuma.
  */
 export function LinhaEvolucao({ pontos }: { pontos: { rotulo: string; valor: number }[] }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
 
   const largura = 280;
   const altura = 90;
@@ -97,7 +95,7 @@ export function LinhaEvolucao({ pontos }: { pontos: { rotulo: string; valor: num
     return (
       <View style={[styles.vazio, { borderColor: p.border }]}>
         <Text style={[type.caption, { color: p.textMuted }]}>
-          A evolução aparece a partir da segunda semana de estudo.
+          {t('estatisticas.semEvolucao')}
         </Text>
       </View>
     );
@@ -127,7 +125,7 @@ export function LinhaEvolucao({ pontos }: { pontos: { rotulo: string; valor: num
       <View style={styles.linha}>
         <Text style={[type.micro, { color: p.textMuted }]}>{pontos[0]!.rotulo}</Text>
         <Text style={[type.micro, { color: p.textSecondary }]}>
-          hoje: {Math.round(pontos[pontos.length - 1]!.valor * 100)}%
+          {t('estatisticas.hoje', { pct: Math.round(pontos[pontos.length - 1]!.valor * 100) })}
         </Text>
       </View>
     </View>

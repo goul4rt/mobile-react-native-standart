@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -8,11 +8,9 @@ import {
   StyleSheet,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  AREA_LABEL,
   fetchSession,
   MOTIVOS_REPORTE,
   reportarProblema,
@@ -20,10 +18,12 @@ import {
   type Question,
   type Resposta,
 } from '../../shared/api/client';
-import { border, palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
+import { border, radius, space, TOUCH_TARGET } from '../../shared/ui-kit/tokens';
 import { Alternativa, type EstadoAlternativa } from './Alternativa';
 import { FimSessao } from './FimSessao';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
 import { RichText } from './RichText';
+import { rotuloArea, t } from '../../shared/i18n';
 
 const TAMANHO = 10;
 
@@ -54,8 +54,7 @@ function Entrada({ children, style }: { children: React.ReactNode; style?: objec
 }
 
 export function SessaoScreen({ area, onSair }: { area: string; onSair: () => void }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type, idioma } = useTema();
 
   const [questions, setQuestions] = useState<Question[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -67,14 +66,16 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
   const [decorrido, setDecorrido] = useState(0);
   const [respostas, setRespostas] = useState<Resposta[]>([]);
   const inicio = useRef(Date.now());
+  // A prova traz as duas línguas; o aluno vê a que escolheu no perfil.
+  const idiomas = useMemo(() => ['pt', idioma === 'ingles' ? 'en' : 'es'], [idioma]);
   const rolagem = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const posicaoFeedback = useRef(0);
 
   useEffect(() => {
-    fetchSession(area, TAMANHO)
+    fetchSession(area, TAMANHO, idiomas)
       .then(setQuestions)
       .catch((e: Error) => setErro(e.message));
-  }, [area]);
+  }, [area, idiomas]);
 
   // Cronômetro discreto do design: conta o tempo da questão, para ao responder.
   useEffect(() => {
@@ -117,8 +118,8 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
 
   const reportar = useCallback((question: Question) => {
     Alert.alert(
-      'Reportar problema',
-      'O que está errado nesta questão?',
+      t('sessao.reportarTitulo'),
+      t('sessao.reportarPergunta'),
       [
         ...MOTIVOS_REPORTE.map((m) => ({
           text: m.rotulo,
@@ -126,10 +127,10 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
             // Otimista: agradece na hora. Uma falha de rede aqui não é problema
             // do aluno, e o reporte não vale uma tela de erro.
             reportarProblema(question.id, m.chave).catch(() => {});
-            Alert.alert('Obrigado', 'Vamos revisar essa questão.');
+            Alert.alert(t('sessao.reportarObrigado'), t('sessao.reportarConfirmacao'));
           },
         })),
-        { text: 'Cancelar', style: 'cancel' as const },
+        { text: t('comum.cancelar'), style: 'cancel' as const },
       ],
       { cancelable: true },
     );
@@ -143,16 +144,16 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
     setEscolha(null);
     setDecorrido(0);
     inicio.current = Date.now();
-    fetchSession(area, TAMANHO)
+    fetchSession(area, TAMANHO, idiomas)
       .then(setQuestions)
       .catch((e: Error) => setErro(e.message));
-  }, [area]);
+  }, [area, idiomas]);
 
   if (erro) {
     return (
       <SafeAreaView style={[styles.center, { backgroundColor: p.bg }]}>
         <Text style={[type.heading, { color: p.text, textAlign: 'center' }]}>
-          Sem internet.{'\n'}Tudo salvo aqui — sincronizamos depois.
+          {t('comum.semInternet')}
         </Text>
         <Text style={[type.caption, { color: p.textMuted, marginTop: space.md }]}>{erro}</Text>
       </SafeAreaView>
@@ -177,7 +178,7 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
   const acertou = respondida && escolha === correta?.id;
   const meta = [
     question.metadata.year ? `ENEM ${question.metadata.year}` : null,
-    question.metadata.area ? AREA_LABEL[question.metadata.area] : null,
+    question.metadata.area ? rotuloArea(question.metadata.area) : null,
   ]
     .filter(Boolean)
     .join(' · ');
@@ -256,7 +257,7 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
                 },
               ]}>
               <Text style={[type.label, { color: acertou ? p.successText : p.dangerText }]}>
-                {acertou ? 'Boa! Essa você domina.' : `Quase. A certa era a ${correta?.id}.`}
+                {acertou ? t('sessao.acertou') : t('sessao.errou', { letra: correta?.id })}
               </Text>
             </Entrada>
 
@@ -271,7 +272,7 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
               // Sem comentário não vale um cartão com título prometendo o que
               // não existe: uma linha discreta basta, a correta já está em verde.
               <Text style={[type.caption, { color: p.textMuted, marginTop: space.md }]}>
-                Esta questão ainda não tem comentário.
+                {t('sessao.semComentario')}
               </Text>
             )}
           </View>
@@ -283,7 +284,7 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
           onPress={() => reportar(question)}
           accessibilityRole="button"
           style={styles.reportar}>
-          <Text style={[type.caption, { color: p.textMuted }]}>⚑ Reportar problema</Text>
+          <Text style={[type.caption, { color: p.textMuted }]}>{t('sessao.reportar')}</Text>
         </Pressable>
       </ScrollView>
 
@@ -300,10 +301,10 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
             ]}>
             <Text style={[type.label, { color: p.onPrimary }]}>
               {!respondida
-                ? 'Responder'
+                ? t('sessao.responder')
                 : indice + 1 === questions.length
-                  ? 'Ver resultado'
-                  : 'Próxima'}
+                  ? t('sessao.verResultado')
+                  : t('sessao.proxima')}
             </Text>
           </Pressable>
         </Entrada>

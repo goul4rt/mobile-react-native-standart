@@ -1,0 +1,50 @@
+# Preferências do perfil: tema, tamanho de fonte e idioma do app.
+appId: org.reactjs.native.example.Gabarita
+---
+- launchApp:
+    clearState: false
+- tapOn:
+    id: 'tab-perfil'
+- assertVisible: 'Perfil'
+
+# Tema: trocar para claro muda a tela na hora.
+- assertVisible: 'Tema'
+- tapOn:
+    id: 'tema-claro'
+- takeScreenshot: /tmp/perfil-claro
+- tapOn:
+    id: 'tema-escuro'
+
+# Tamanho da fonte.
+- assertVisible: 'Tamanho da fonte'
+- tapOn:
+    id: 'escala-maior'
+- takeScreenshot: /tmp/perfil-fonte
+
+- tapOn:
+    id: 'escala-normal'
+
+# Idioma do app: a interface inteira troca para inglês.
+- assertVisible: 'Idioma do app'
+- tapOn:
+    id: 'idioma-app-en'
+- assertVisible: 'Profile'
+- assertVisible: 'App language'
+- assertVisible: 'Sign out'
+- takeScreenshot: /tmp/perfil-ingles
+
+# A troca vale nas outras abas também, não só nesta tela.
+- tapOn:
+    id: 'tab-home'
+- assertVisible: 'STUDY BY SUBJECT'
+- tapOn:
+    id: 'tab-estatisticas'
+- assertVisible: 'Stats'
+- assertVisible: 'You and others'
+
+# Volta pro português e confirma que persiste.
+- tapOn:
+    id: 'tab-perfil'
+- tapOn:
+    id: 'idioma-app-pt'
+- assertVisible: 'Perfil'

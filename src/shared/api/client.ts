@@ -29,13 +29,6 @@ export type Question = {
   };
 };
 
-export const AREA_LABEL: Record<string, string> = {
-  LC: 'Linguagens',
-  CH: 'Ciências Humanas',
-  CN: 'Ciências da Natureza',
-  MT: 'Matemática',
-};
-
 /**
  * Identifica o aparelho pra deduplicar reportes. Vive só enquanto o app está
  * aberto — sem storage persistente ainda.
@@ -90,8 +83,14 @@ export async function fetchPopulation(area: string): Promise<{ accuracy: number;
   return data.byArea.find((a) => a.area === area) ?? null;
 }
 
-export async function fetchSession(area: string, limit = 10): Promise<Question[]> {
-  const res = await fetch(`${API_URL}/v1/questions?area=${area}&random=true&limit=${limit}`);
+export async function fetchSession(
+  area: string,
+  limit = 10,
+  /** Português mais a língua estrangeira escolhida — nunca só uma delas. */
+  idiomas: string[] = ['pt'],
+): Promise<Question[]> {
+  const lingua = `&language=${idiomas.join(',')}`;
+  const res = await fetch(`${API_URL}/v1/questions?area=${area}&random=true&limit=${limit}${lingua}`);
   if (!res.ok) throw new Error(`API respondeu ${res.status}`);
   const data = (await res.json()) as { items: Question[] };
   return data.items;

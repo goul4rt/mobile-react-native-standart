@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Alternative } from '../../shared/api/client';
-import { border, palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
+import { border, radius, space, TOUCH_TARGET, type Palette } from '../../shared/ui-kit/tokens';
+import { useTema } from '../../shared/ui-kit/PreferenciasContext';
 import { RichText } from './RichText';
 
 export type EstadoAlternativa = 'neutra' | 'selecionada' | 'correta' | 'errada' | 'descartada';
 
-function cores(estado: EstadoAlternativa, p: (typeof palettes)['dark']) {
+function cores(estado: EstadoAlternativa, p: Palette) {
   switch (estado) {
     case 'selecionada':
       return { fundo: p.primarySubtle, borda: p.primary, letra: p.primary, textoLetra: p.onPrimary };
@@ -28,8 +29,7 @@ export function Alternativa({
   estado: EstadoAlternativa;
   onPress: () => void;
 }) {
-  const dark = useColorScheme() === 'dark';
-  const p = dark ? palettes.dark : palettes.light;
+  const { p, type } = useTema();
   const c = cores(estado, p);
 
   const escala = useRef(new Animated.Value(1)).current;

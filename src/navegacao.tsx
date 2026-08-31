@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer, type Theme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,6 +11,8 @@ import { EstatisticasScreen } from './modules/estatisticas/EstatisticasScreen';
 import { HomeScreen } from './modules/questoes/HomeScreen';
 import { SessaoScreen } from './modules/questoes/SessaoScreen';
 import { useAuth } from './shared/auth/AuthContext';
+import { t } from './shared/i18n';
+import { useTema } from './shared/ui-kit/PreferenciasContext';
 import { palettes, type } from './shared/ui-kit/tokens';
 
 const Tabs = createBottomTabNavigator();
@@ -43,8 +45,7 @@ function Icone({ simbolo, cor }: { simbolo: string; cor: string }) {
 }
 
 function Nucleo() {
-  const escuro = useColorScheme() === 'dark';
-  const p = escuro ? palettes.dark : palettes.light;
+  const { p } = useTema();
 
   return (
     <Tabs.Navigator
@@ -58,6 +59,7 @@ function Nucleo() {
       <Tabs.Screen
         name="Home"
         options={{
+          tabBarLabel: t('home.tab'),
           tabBarIcon: ({ color }) => <Icone simbolo="◧" cor={color} />,
           tabBarButtonTestID: 'tab-home',
         }}>
@@ -66,9 +68,10 @@ function Nucleo() {
         )}
       </Tabs.Screen>
       <Tabs.Screen
-        name="Estatísticas"
+        name="Estatisticas"
         component={EstatisticasScreen}
         options={{
+          tabBarLabel: t('estatisticas.titulo'),
           tabBarIcon: ({ color }) => <Icone simbolo="◈" cor={color} />,
           tabBarButtonTestID: 'tab-estatisticas',
         }}
@@ -77,6 +80,7 @@ function Nucleo() {
         name="Perfil"
         component={PerfilScreen}
         options={{
+          tabBarLabel: t('perfil.titulo'),
           tabBarIcon: ({ color }) => <Icone simbolo="◍" cor={color} />,
           tabBarButtonTestID: 'tab-perfil',
         }}
@@ -99,8 +103,7 @@ function Entrada() {
 }
 
 export function Navegacao() {
-  const escuro = useColorScheme() === 'dark';
-  const p = escuro ? palettes.dark : palettes.light;
+  const { p, escuro, idiomaApp } = useTema();
   const { carregando, usuario } = useAuth();
 
   if (carregando) {
@@ -113,9 +116,12 @@ export function Navegacao() {
 
   return (
     <NavigationContainer theme={tema(escuro)}>
+      <StatusBar barStyle={escuro ? 'light-content' : 'dark-content'} />
       {usuario ? (
         <Pilha.Navigator screenOptions={{ headerShown: false }}>
-          <Pilha.Screen name="Núcleo" component={Nucleo} />
+          {/* key pelo idioma: os rótulos das abas são calculados no registro
+              da rota, então trocar de idioma exige remontar o navegador. */}
+          <Pilha.Screen key={idiomaApp} name="Núcleo" component={Nucleo} />
           <Pilha.Screen name="Sessao" options={{ presentation: 'fullScreenModal' }}>
             {({ navigation, route }) => (
               <SessaoScreen
