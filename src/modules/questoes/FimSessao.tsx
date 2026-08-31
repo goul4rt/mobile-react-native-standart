@@ -24,10 +24,12 @@ export function FimSessao({
   respostas,
   area,
   onRepetir,
+  onSair,
 }: {
   respostas: Resposta[];
   area: string;
   onRepetir: () => void;
+  onSair: () => void;
 }) {
   const dark = useColorScheme() === 'dark';
   const p = dark ? palettes.dark : palettes.light;
@@ -82,11 +84,16 @@ export function FimSessao({
 
         <Pressable
           onPress={onRepetir}
+          testID="mais-dez"
           style={({ pressed }) => [
             styles.botao,
             { backgroundColor: pressed ? p.primaryPressed : p.primary },
           ]}>
           <Text style={[type.label, { color: p.onPrimary }]}>Mais 10 questões</Text>
+        </Pressable>
+
+        <Pressable onPress={onSair} testID="trocar-area" style={styles.botaoPlano}>
+          <Text style={[type.label, { color: p.textSecondary }]}>Escolher outra área</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -105,6 +112,7 @@ const styles = StyleSheet.create({
   comparacao: { flexDirection: 'column', gap: space.sm },
   metrica: { flex: 1, alignItems: 'center', gap: space.xs },
   linha: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  botaoPlano: { height: 44, alignItems: 'center', justifyContent: 'center' },
   botao: {
     height: 52,
     borderRadius: radius.lg,

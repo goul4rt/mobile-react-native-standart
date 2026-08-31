@@ -67,7 +67,7 @@ async function render(questions: Question[]) {
 
   let tree!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
-    tree = ReactTestRenderer.create(<SessaoScreen />);
+    tree = ReactTestRenderer.create(<SessaoScreen area="CH" onSair={() => {}} />);
   });
   montada = tree;
   return tree;
@@ -88,6 +88,7 @@ async function avancar(tree: ReactTestRenderer.ReactTestRenderer) {
     (node) => typeof node.props?.onPress === 'function' && node.props?.testID === undefined,
   );
   const proxima = botoes[botoes.length - 1];
+  if (!proxima) throw new Error('botão de avançar não encontrado');
   await act(async () => proxima.props.onPress());
 }
 
@@ -156,7 +157,7 @@ describe('SessaoScreen', () => {
     (globalThis as any).fetch = jest.fn().mockRejectedValue(new Error('Network request failed'));
     let tree!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
-      tree = ReactTestRenderer.create(<SessaoScreen />);
+      tree = ReactTestRenderer.create(<SessaoScreen area="CH" onSair={() => {}} />);
     });
     montada = tree;
 

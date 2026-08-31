@@ -36,6 +36,16 @@ export const AREA_LABEL: Record<string, string> = {
   MT: 'Matemática',
 };
 
+export type AreaResumo = { code: string; label: string; total: number; years: number[] };
+
+/** Áreas com questões publicadas, direto do acervo. */
+export async function fetchTaxonomy(): Promise<AreaResumo[]> {
+  const res = await fetch(`${API_URL}/v1/taxonomy`);
+  if (!res.ok) throw new Error(`API respondeu ${res.status}`);
+  const data = (await res.json()) as { areas: AreaResumo[] };
+  return data.areas;
+}
+
 export type Resposta = {
   questionId: string;
   escolha: string;

@@ -14,7 +14,6 @@ import { FimSessao } from './FimSessao';
 import { border, palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
 import { RichText } from './RichText';
 
-const AREA = 'CH';
 const TAMANHO = 10;
 
 function formatTime(ms: number) {
@@ -22,7 +21,7 @@ function formatTime(ms: number) {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
-export function SessaoScreen() {
+export function SessaoScreen({ area, onSair }: { area: string; onSair: () => void }) {
   const dark = useColorScheme() === 'dark';
   const p = dark ? palettes.dark : palettes.light;
 
@@ -35,10 +34,10 @@ export function SessaoScreen() {
   const inicio = useRef(Date.now());
 
   useEffect(() => {
-    fetchSession(AREA, TAMANHO)
+    fetchSession(area, TAMANHO)
       .then(setQuestions)
       .catch((e: Error) => setErro(e.message));
-  }, []);
+  }, [area]);
 
   // Cronômetro discreto do design: conta o tempo da questão, zera na virada.
   useEffect(() => {
@@ -74,10 +73,10 @@ export function SessaoScreen() {
     setEscolha(null);
     setDecorrido(0);
     inicio.current = Date.now();
-    fetchSession(AREA, TAMANHO)
+    fetchSession(area, TAMANHO)
       .then(setQuestions)
       .catch((e: Error) => setErro(e.message));
-  }, []);
+  }, [area]);
 
   if (erro) {
     return (
@@ -100,7 +99,7 @@ export function SessaoScreen() {
 
   const question = questions[indice];
   if (!question) {
-    return <FimSessao respostas={respostas} area={AREA} onRepetir={recomecar} />;
+    return <FimSessao respostas={respostas} area={area} onRepetir={recomecar} onSair={onSair} />;
   }
 
   const correta = question.alternatives.find((a) => a.correct);
@@ -115,7 +114,7 @@ export function SessaoScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: p.bg }} edges={['top', 'bottom']}>
       <View style={styles.topo}>
-        <Pressable hitSlop={12} style={styles.iconeSair}>
+        <Pressable hitSlop={12} onPress={onSair} testID="sair" style={styles.iconeSair}>
           <Text style={[type.label, { color: p.textSecondary }]}>✕</Text>
         </Pressable>
         <View style={[styles.trilho, { backgroundColor: p.surfaceAlt }]}>
