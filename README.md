@@ -12,8 +12,18 @@ npm start                      # Metro
 npm run ios                    # ou: npm run android
 ```
 
-O app consome uma API de questões em `http://localhost:3000` (`src/shared/api/client.ts`).
-No emulador Android o host vira `10.0.2.2` automaticamente.
+## Sobre o backend
+
+O app consome uma API de questões própria, que vive em outro repositório e não é
+necessária para avaliar a integração com o Zephyr: o `metro.config.js`, o
+`react-native.config.js` e o fluxo de publicação são independentes dela.
+
+Sem a API no ar, o app abre e mostra a tela de falha de conexão com um botão de
+tentar de novo, que é o comportamento correto e também é o que o E2E
+`sem-api.yaml` verifica.
+
+O endereço fica em `src/shared/api/client.ts` (`API_URL`). No emulador Android o
+host vira `10.0.2.2` automaticamente, que é o alias do host da máquina.
 
 ## Estrutura
 
