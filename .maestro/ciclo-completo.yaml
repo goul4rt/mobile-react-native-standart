@@ -1,0 +1,86 @@
+# Do cadastro às estatísticas: prova que a resposta sai do app, chega na API e
+# volta como número na aba de estatísticas.
+appId: org.reactjs.native.example.Gabarita
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: 'criar-conta'
+- tapOn:
+    id: 'campo-nome'
+- inputText: 'Bruno'
+- tapOn:
+    id: 'campo-email'
+- inputText: 'bruno-${Date.now()}@exemplo.test'
+- tapOn:
+    id: 'campo-senha'
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'senha-de-teste-123'
+- hideKeyboard
+- tapOn:
+    id: 'aceite'
+- tapOn:
+    id: 'enviar-cadastro'
+- extendedWaitUntil:
+    visible: 'Oi, Bruno'
+    timeout: 25000
+
+# Conta nova: nenhuma estatística ainda.
+- tapOn:
+    id: 'tab-estatisticas'
+- assertVisible: '.*Responda algumas questões.*'
+
+# Responde uma sessão inteira.
+- tapOn:
+    id: 'tab-home'
+- tapOn:
+    id: 'area-MT'
+- extendedWaitUntil:
+    visible: '1/10'
+    timeout: 20000
+- repeat:
+    times: 10
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: 'alternativa-A'
+          direction: DOWN
+          timeout: 20000
+      - tapOn:
+          id: 'alternativa-A'
+      - tapOn:
+          id: 'responder'
+      - tapOn:
+          id: 'proxima'
+- extendedWaitUntil:
+    visible: 'Fim da sessão'
+    timeout: 15000
+# O botão fica desabilitado enquanto o lote sobe; o texto só volta quando acaba.
+- extendedWaitUntil:
+    visible: 'Voltar pra home'
+    timeout: 20000
+- tapOn:
+    id: 'trocar-area'
+
+# De volta na home: o cartão de continuar aparece com o que foi respondido.
+- extendedWaitUntil:
+    visible: '.*CONTINUAR DE ONDE PAROU.*'
+    timeout: 20000
+- assertVisible: '.*10 respondidas.*'
+
+# E as estatísticas deixaram de estar vazias.
+- tapOn:
+    id: 'tab-estatisticas'
+- extendedWaitUntil:
+    visible: 'ACERTO POR ÁREA'
+    timeout: 20000
+- assertVisible: '.*de 10 questões.*'
+- assertVisible: 'questões respondidas'
+- takeScreenshot: /tmp/estatisticas
+
+# A outra aba respeita a amostra mínima da população.
+- tapOn:
+    id: 'aba-outros'
+- assertVisible: '.*Comparações são sempre com a média geral.*'
+- takeScreenshot: /tmp/comparacao

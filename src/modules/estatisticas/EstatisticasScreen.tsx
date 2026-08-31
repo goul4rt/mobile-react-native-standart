@@ -1,0 +1,220 @@
+import React, { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  AREA_LABEL,
+  fetchMinhasEstatisticas,
+  fetchPopulacaoPorArea,
+  type EstatisticaPopulacao,
+  type MinhasEstatisticas,
+} from '../../shared/api/client';
+import { useAuth } from '../../shared/auth/AuthContext';
+import { border, palettes, radius, space, type } from '../../shared/ui-kit/tokens';
+import { BarraAcerto, ComparacaoArea, LinhaEvolucao } from './graficos';
+
+type Aba = 'voce' | 'outros';
+
+function formatarTempo(ms: number | null): string {
+  if (!ms) return '—';
+  const s = Math.round(ms / 1000);
+  return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`;
+}
+
+export function EstatisticasScreen() {
+  const dark = useColorScheme() === 'dark';
+  const p = dark ? palettes.dark : palettes.light;
+  const { token } = useAuth();
+
+  const [aba, setAba] = useState<Aba>('voce');
+  const [minhas, setMinhas] = useState<MinhasEstatisticas | null>(null);
+  const [populacao, setPopulacao] = useState<EstatisticaPopulacao[]>([]);
+  const [carregando, setCarregando] = useState(true);
+
+  const carregar = useCallback(async () => {
+    const t = await token();
+    if (!t) return;
+    const [meu, geral] = await Promise.all([
+      fetchMinhasEstatisticas(t).catch(() => null),
+      fetchPopulacaoPorArea().catch(() => []),
+    ]);
+    setMinhas(meu);
+    setPopulacao(geral);
+    setCarregando(false);
+  }, [token]);
+
+  // Recarrega ao voltar pra aba: os números mudaram se houve sessão no meio.
+  useFocusEffect(
+    useCallback(() => {
+      carregar();
+    }, [carregar]),
+  );
+
+  if (carregando) {
+    return (
+      <SafeAreaView style={[styles.centro, { backgroundColor: p.bg }]} edges={['top']}>
+        <ActivityIndicator color={p.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  const respondidas = minhas?.overall.total ?? 0;
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: p.bg }} edges={['top']}>
+      <Text style={[type.title, { color: p.text, paddingHorizontal: space.xxl }]}>Estatísticas</Text>
+
+      <View style={[styles.abas, { borderBottomColor: p.border }]}>
+        {(
+          [
+            ['voce', 'Você'],
+            ['outros', 'Você e os outros'],
+          ] as const
+        ).map(([chave, rotulo]) => (
+          <Pressable
+            key={chave}
+            testID={`aba-${chave}`}
+            onPress={() => setAba(chave)}
+            style={[styles.aba, aba === chave && { borderBottomColor: p.primary }]}>
+            <Text style={[type.label, { color: aba === chave ? p.text : p.textMuted }]}>
+              {rotulo}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.conteudo}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={carregar} tintColor={p.primary} />
+        }>
+        {respondidas === 0 ? (
+          <View style={[styles.vazio, { borderColor: p.border }]}>
+            <Text style={[type.body, { color: p.textSecondary }]}>
+              Responda algumas questões e seus números aparecem aqui.
+            </Text>
+          </View>
+        ) : aba === 'voce' ? (
+          <>
+            <Secao titulo="Acerto por área">
+              <View style={{ gap: space.lg }}>
+                {minhas!.byArea.map((a) => (
+                  <BarraAcerto
+                    key={a.area}
+                    rotulo={AREA_LABEL[a.area] ?? a.area}
+                    acertos={a.correct}
+                    total={a.total}
+                  />
+                ))}
+              </View>
+            </Secao>
+
+            <Secao titulo="Evolução · últimas semanas">
+              <LinhaEvolucao
+                pontos={[...minhas!.weekly]
+                  .reverse()
+                  .map((s) => ({
+                    rotulo: new Date(s.week).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                    }),
+                    valor: s.total > 0 ? s.correct / s.total : 0,
+                  }))}
+              />
+            </Secao>
+
+            <View style={styles.numeros}>
+              <Numero valor={formatarTempo(minhas!.overall.avg_time_ms)} rotulo="tempo médio" />
+              <Numero valor={String(respondidas)} rotulo="questões respondidas" />
+              <Numero
+                valor={`${Math.round((minhas!.overall.correct / respondidas) * 100)}%`}
+                rotulo="de acerto"
+              />
+            </View>
+          </>
+        ) : (
+          <>
+            {minhas!.byArea.map((minha) => {
+              const geral = populacao.find((g) => g.area === minha.area);
+              if (!geral) {
+                return (
+                  <View
+                    key={minha.area}
+                    style={[styles.vazio, { borderColor: p.border, marginBottom: space.lg }]}>
+                    <Text style={[type.heading, { color: p.text, marginBottom: space.xs }]}>
+                      {AREA_LABEL[minha.area] ?? minha.area}
+                    </Text>
+                    <Text style={[type.caption, { color: p.textSecondary }]}>
+                      Ainda faltam respostas de outros alunos pra comparar. A comparação abre quando
+                      a amostra for suficiente.
+                    </Text>
+                  </View>
+                );
+              }
+              return (
+                <View key={minha.area} style={{ marginBottom: space.xl }}>
+                  <ComparacaoArea
+                    rotulo={AREA_LABEL[minha.area] ?? minha.area}
+                    voce={minha.total > 0 ? minha.correct / minha.total : null}
+                    media={geral.accuracy}
+                    usuarios={geral.users}
+                  />
+                </View>
+              );
+            })}
+            <Text style={[type.micro, { color: p.textMuted }]}>
+              Comparações são sempre com a média geral — nunca com uma pessoa específica.
+            </Text>
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function Secao({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  const dark = useColorScheme() === 'dark';
+  const p = dark ? palettes.dark : palettes.light;
+  return (
+    <View style={{ marginBottom: space.section }}>
+      <Text style={[type.micro, { color: p.textMuted, marginBottom: space.md }]}>
+        {titulo.toUpperCase()}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+function Numero({ valor, rotulo }: { valor: string; rotulo: string }) {
+  const dark = useColorScheme() === 'dark';
+  const p = dark ? palettes.dark : palettes.light;
+  return (
+    <View style={{ flex: 1, alignItems: 'center', gap: space.xs }}>
+      <Text style={[type.title, { color: p.text }]}>{valor}</Text>
+      <Text style={[type.micro, { color: p.textMuted, textAlign: 'center' }]}>{rotulo}</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  centro: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  abas: { flexDirection: 'row', borderBottomWidth: 1, marginTop: space.lg },
+  aba: {
+    paddingHorizontal: space.xxl,
+    paddingVertical: space.md,
+    borderBottomWidth: border.strong,
+    borderBottomColor: 'transparent',
+  },
+  conteudo: { padding: space.xxl },
+  numeros: { flexDirection: 'row', gap: space.md },
+  vazio: { borderWidth: 1, borderStyle: 'dashed', borderRadius: radius.lg, padding: space.lg },
+});

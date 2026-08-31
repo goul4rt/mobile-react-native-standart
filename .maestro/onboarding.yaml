@@ -1,0 +1,47 @@
+# Primeiro acesso: abertura -> cadastro com consentimento -> home.
+appId: org.reactjs.native.example.Gabarita
+---
+- launchApp:
+    clearState: true
+
+- assertVisible: 'Gabarita'
+- assertVisible: 'Estude por questões do ENEM. Uma de cada vez.'
+- tapOn:
+    id: 'criar-conta'
+
+- assertVisible: 'Criar conta'
+- tapOn:
+    id: 'campo-nome'
+- inputText: 'Ana Souza'
+- tapOn:
+    id: 'campo-email'
+# E-mail novo a cada execução: cadastrar duas vezes o mesmo dá 409.
+- inputText: 'ana-${Date.now()}@exemplo.test'
+- tapOn:
+    id: 'campo-senha'
+- waitForAnimationToEnd:
+    timeout: 3000
+- inputText: 'senha-de-teste-123'
+- assertVisible:
+    id: 'campo-senha'
+    text: '.+'
+- hideKeyboard
+
+# LGPD: o botão só liga depois do aceite marcado.
+- assertVisible: 'O botão ativa quando o aceite é marcado.'
+- tapOn:
+    id: 'aceite'
+- assertNotVisible: 'O botão ativa quando o aceite é marcado.'
+
+# O botão tem que ser alcançável mesmo com o teclado aberto.
+- tapOn:
+    id: 'enviar-cadastro'
+
+# Entrou: home com o primeiro nome e as áreas.
+- extendedWaitUntil:
+    visible: 'Oi, Ana'
+    timeout: 25000
+- assertVisible: 'ESTUDAR POR ÁREA'
+- assertVisible:
+    id: 'tab-estatisticas'
+- takeScreenshot: /tmp/home

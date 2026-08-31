@@ -7,20 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01E0360B0FFF4AC4ABE4B740 /* PublicSans-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1759E543BC6A4C578954AC91 /* PublicSans-Italic.ttf */; };
 		0C80B921A6F3F58F76C31292 /* libPods-Gabarita.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-Gabarita.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		3ADEFD69DFD60916D2DDD523 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
-		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
-		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		14F77141DECC4CB19AE3221D /* Lexend-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4864CC7AA5E84F6DB1B8969A /* Lexend-Regular.ttf */; };
-		01E0360B0FFF4AC4ABE4B740 /* PublicSans-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1759E543BC6A4C578954AC91 /* PublicSans-Italic.ttf */; };
-		5A18BBFBEEF04506BCCC39CD /* Lexend-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1D67F1958534415CAC5FF8C8 /* Lexend-SemiBold.ttf */; };
-		C0ED89E97CAB4D60A6706244 /* PublicSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 369FE358160A4E189D92D61D /* PublicSans-Regular.ttf */; };
 		1433E44C73CD4F82A8205CCD /* PublicSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 49F8DAF2C3154EF79923F5F2 /* PublicSans-Bold.ttf */; };
+		14F77141DECC4CB19AE3221D /* Lexend-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4864CC7AA5E84F6DB1B8969A /* Lexend-Regular.ttf */; };
+		3ADEFD69DFD60916D2DDD523 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		5A18BBFBEEF04506BCCC39CD /* Lexend-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1D67F1958534415CAC5FF8C8 /* Lexend-SemiBold.ttf */; };
 		7392FE34075E4525B9DC0156 /* PublicSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8EA934809FE54BE3B406247F /* PublicSans-SemiBold.ttf */; };
-		FF7EEE4BF6F94D4C84323541 /* Lexend-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B8C7F698D4EA4D3EB3221B26 /* Lexend-Bold.ttf */; };
+		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		76915C476CF041FDBBAE9D50 /* OFL-Lexend.txt in Resources */ = {isa = PBXBuildFile; fileRef = FCFF569DF8B54D93B41D89F1 /* OFL-Lexend.txt */; };
 		7B7ABBE8B24D46A3A11F889E /* OFL-PublicSans.txt in Resources */ = {isa = PBXBuildFile; fileRef = 78ABB9A2A3634D0C953D5A51 /* OFL-PublicSans.txt */; };
+		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		C0ED89E97CAB4D60A6706244 /* PublicSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 369FE358160A4E189D92D61D /* PublicSans-Regular.ttf */; };
+		FF7EEE4BF6F94D4C84323541 /* Lexend-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B8C7F698D4EA4D3EB3221B26 /* Lexend-Bold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,21 +28,21 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Gabarita/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Gabarita/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Gabarita/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1759E543BC6A4C578954AC91 /* PublicSans-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PublicSans-Italic.ttf"; path = "../assets/fonts/PublicSans-Italic.ttf"; sourceTree = "<group>"; };
+		1D67F1958534415CAC5FF8C8 /* Lexend-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-SemiBold.ttf"; path = "../assets/fonts/Lexend-SemiBold.ttf"; sourceTree = "<group>"; };
+		369FE358160A4E189D92D61D /* PublicSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PublicSans-Regular.ttf"; path = "../assets/fonts/PublicSans-Regular.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Gabarita.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Gabarita.debug.xcconfig"; path = "Target Support Files/Pods-Gabarita/Pods-Gabarita.debug.xcconfig"; sourceTree = "<group>"; };
+		4864CC7AA5E84F6DB1B8969A /* Lexend-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Regular.ttf"; path = "../assets/fonts/Lexend-Regular.ttf"; sourceTree = "<group>"; };
+		49F8DAF2C3154EF79923F5F2 /* PublicSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PublicSans-Bold.ttf"; path = "../assets/fonts/PublicSans-Bold.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-Gabarita.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Gabarita.release.xcconfig"; path = "Target Support Files/Pods-Gabarita/Pods-Gabarita.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-Gabarita.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Gabarita.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Gabarita/AppDelegate.swift; sourceTree = "<group>"; };
+		78ABB9A2A3634D0C953D5A51 /* OFL-PublicSans.txt */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "OFL-PublicSans.txt"; path = "../assets/fonts/OFL-PublicSans.txt"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Gabarita/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		8EA934809FE54BE3B406247F /* PublicSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "PublicSans-SemiBold.ttf"; path = "../assets/fonts/PublicSans-SemiBold.ttf"; sourceTree = "<group>"; };
+		B8C7F698D4EA4D3EB3221B26 /* Lexend-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Lexend-Bold.ttf"; path = "../assets/fonts/Lexend-Bold.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		4864CC7AA5E84F6DB1B8969A /* Lexend-Regular.ttf */ = {isa = PBXFileReference; name = "Lexend-Regular.ttf"; path = "../assets/fonts/Lexend-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		1759E543BC6A4C578954AC91 /* PublicSans-Italic.ttf */ = {isa = PBXFileReference; name = "PublicSans-Italic.ttf"; path = "../assets/fonts/PublicSans-Italic.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		1D67F1958534415CAC5FF8C8 /* Lexend-SemiBold.ttf */ = {isa = PBXFileReference; name = "Lexend-SemiBold.ttf"; path = "../assets/fonts/Lexend-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		369FE358160A4E189D92D61D /* PublicSans-Regular.ttf */ = {isa = PBXFileReference; name = "PublicSans-Regular.ttf"; path = "../assets/fonts/PublicSans-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		49F8DAF2C3154EF79923F5F2 /* PublicSans-Bold.ttf */ = {isa = PBXFileReference; name = "PublicSans-Bold.ttf"; path = "../assets/fonts/PublicSans-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		8EA934809FE54BE3B406247F /* PublicSans-SemiBold.ttf */ = {isa = PBXFileReference; name = "PublicSans-SemiBold.ttf"; path = "../assets/fonts/PublicSans-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		B8C7F698D4EA4D3EB3221B26 /* Lexend-Bold.ttf */ = {isa = PBXFileReference; name = "Lexend-Bold.ttf"; path = "../assets/fonts/Lexend-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		FCFF569DF8B54D93B41D89F1 /* OFL-Lexend.txt */ = {isa = PBXFileReference; name = "OFL-Lexend.txt"; path = "../assets/fonts/OFL-Lexend.txt"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		78ABB9A2A3634D0C953D5A51 /* OFL-PublicSans.txt */ = {isa = PBXFileReference; name = "OFL-PublicSans.txt"; path = "../assets/fonts/OFL-PublicSans.txt"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		FCFF569DF8B54D93B41D89F1 /* OFL-Lexend.txt */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "OFL-Lexend.txt"; path = "../assets/fonts/OFL-Lexend.txt"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +76,23 @@
 				5DCACB8F33CDC322A6C60F78 /* libPods-Gabarita.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		36000C6C536C4C9BA5864F41 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				4864CC7AA5E84F6DB1B8969A /* Lexend-Regular.ttf */,
+				1759E543BC6A4C578954AC91 /* PublicSans-Italic.ttf */,
+				1D67F1958534415CAC5FF8C8 /* Lexend-SemiBold.ttf */,
+				369FE358160A4E189D92D61D /* PublicSans-Regular.ttf */,
+				49F8DAF2C3154EF79923F5F2 /* PublicSans-Bold.ttf */,
+				8EA934809FE54BE3B406247F /* PublicSans-SemiBold.ttf */,
+				B8C7F698D4EA4D3EB3221B26 /* Lexend-Bold.ttf */,
+				FCFF569DF8B54D93B41D89F1 /* OFL-Lexend.txt */,
+				78ABB9A2A3634D0C953D5A51 /* OFL-PublicSans.txt */,
+			);
+			name = Resources;
+			path = "";
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -116,23 +133,6 @@
 			);
 			path = Pods;
 			sourceTree = "<group>";
-		};
-		36000C6C536C4C9BA5864F41 /* Resources */ = {
-			isa = "PBXGroup";
-			children = (
-				4864CC7AA5E84F6DB1B8969A /* Lexend-Regular.ttf */,
-				1759E543BC6A4C578954AC91 /* PublicSans-Italic.ttf */,
-				1D67F1958534415CAC5FF8C8 /* Lexend-SemiBold.ttf */,
-				369FE358160A4E189D92D61D /* PublicSans-Regular.ttf */,
-				49F8DAF2C3154EF79923F5F2 /* PublicSans-Bold.ttf */,
-				8EA934809FE54BE3B406247F /* PublicSans-SemiBold.ttf */,
-				B8C7F698D4EA4D3EB3221B26 /* Lexend-Bold.ttf */,
-				FCFF569DF8B54D93B41D89F1 /* OFL-Lexend.txt */,
-				78ABB9A2A3634D0C953D5A51 /* OFL-PublicSans.txt */,
-			);
-			name = Resources;
-			sourceTree = "<group>";
-			path = "";
 		};
 /* End PBXGroup section */
 

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { fetchPopulation, type Resposta } from '../../shared/api/client';
+import { enviarRespostas, fetchPopulation, type Resposta } from '../../shared/api/client';
+import { useAuth } from '../../shared/auth/AuthContext';
 import { border, palettes, radius, space, type } from '../../shared/ui-kit/tokens';
 
 function formatTime(ms: number) {
@@ -33,6 +34,10 @@ export function FimSessao({
 }) {
   const dark = useColorScheme() === 'dark';
   const p = dark ? palettes.dark : palettes.light;
+  const { token } = useAuth();
+  const [sincronizacao, setSincronizacao] = useState<'enviando' | 'ok' | 'falhou'>(
+    respostas.length > 0 ? 'enviando' : 'ok',
+  );
 
   const acertos = respostas.filter((r) => r.correta).length;
   const erros = respostas.length - acertos;
@@ -47,6 +52,36 @@ export function FimSessao({
       .then(setMedia)
       .catch(() => setMedia(null));
   }, [area]);
+
+  /**
+   * Sincroniza o lote ao fim da sessão. Falhar aqui não custa nada ao aluno: o
+   * clientId torna o reenvio idempotente, então uma tentativa futura resolve.
+   */
+  useEffect(() => {
+    if (respostas.length === 0) return;
+    let vivo = true;
+    (async () => {
+      const t = await token();
+      if (!t) return vivo ? setSincronizacao('falhou') : undefined;
+      try {
+        await enviarRespostas(
+          t,
+          respostas.map((r) => ({
+            clientId: r.clientId,
+            questionId: r.questionId,
+            chosen: r.escolha,
+            timeMs: r.tempoMs,
+          })),
+        );
+        if (vivo) setSincronizacao('ok');
+      } catch {
+        if (vivo) setSincronizacao('falhou');
+      }
+    })();
+    return () => {
+      vivo = false;
+    };
+  }, [respostas, token]);
 
   return (
     <SafeAreaView style={[styles.tela, { backgroundColor: p.bg }]} edges={['top', 'bottom']}>
@@ -84,6 +119,7 @@ export function FimSessao({
 
         <Pressable
           onPress={onRepetir}
+          disabled={sincronizacao === 'enviando'}
           testID="mais-dez"
           style={({ pressed }) => [
             styles.botao,
@@ -92,9 +128,26 @@ export function FimSessao({
           <Text style={[type.label, { color: p.onPrimary }]}>Mais 10 questões</Text>
         </Pressable>
 
-        <Pressable onPress={onSair} testID="trocar-area" style={styles.botaoPlano}>
-          <Text style={[type.label, { color: p.textSecondary }]}>Escolher outra área</Text>
+        {/* Sair enquanto o lote sobe deixaria a home com número velho. */}
+        <Pressable
+          onPress={onSair}
+          disabled={sincronizacao === 'enviando'}
+          testID="trocar-area"
+          style={[styles.botaoPlano, { opacity: sincronizacao === 'enviando' ? 0.5 : 1 }]}>
+          {sincronizacao === 'enviando' ? (
+            <ActivityIndicator color={p.textSecondary} />
+          ) : (
+            <Text style={[type.label, { color: p.textSecondary }]}>Voltar pra home</Text>
+          )}
         </Pressable>
+
+        {sincronizacao === 'falhou' && (
+          <Text
+            testID="sync-pendente"
+            style={[type.micro, { color: p.textMuted, textAlign: 'center' }]}>
+            {respostas.length} respostas aguardando conexão.
+          </Text>
+        )}
       </View>
     </SafeAreaView>
   );

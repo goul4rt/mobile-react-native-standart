@@ -16,6 +16,7 @@ import {
   fetchSession,
   MOTIVOS_REPORTE,
   reportarProblema,
+  uuid,
   type Question,
   type Resposta,
 } from '../../shared/api/client';
@@ -94,6 +95,7 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
       setRespostas((anteriores) => [
         ...anteriores,
         {
+          clientId: uuid(),
           questionId: question.id,
           escolha: selecionada,
           correta: question.alternatives.some((a) => a.correct && a.id === selecionada),
