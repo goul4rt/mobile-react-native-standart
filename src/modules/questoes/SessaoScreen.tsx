@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,8 +11,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AREA_LABEL, fetchSession, type Question, type Resposta } from '../../shared/api/client';
-import { FimSessao } from './FimSessao';
 import { border, palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
+import { Alternativa, type EstadoAlternativa } from './Alternativa';
+import { FimSessao } from './FimSessao';
 import { RichText } from './RichText';
 
 const TAMANHO = 10;
@@ -21,6 +23,27 @@ function formatTime(ms: number) {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
+/** Entra deslizando de baixo, sem estourar na tela. */
+function Entrada({ children, style }: { children: React.ReactNode; style?: object }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+  }, [anim]);
+
+  return (
+    <Animated.View
+      style={[
+        style,
+        {
+          opacity: anim,
+          transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+        },
+      ]}>
+      {children}
+    </Animated.View>
+  );
+}
+
 export function SessaoScreen({ area, onSair }: { area: string; onSair: () => void }) {
   const dark = useColorScheme() === 'dark';
   const p = dark ? palettes.dark : palettes.light;
@@ -28,10 +51,14 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
   const [questions, setQuestions] = useState<Question[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [indice, setIndice] = useState(0);
+  /** Escolha marcada, ainda não enviada — dá pra trocar de ideia. */
+  const [selecionada, setSelecionada] = useState<string | null>(null);
+  /** Escolha confirmada: só aqui o gabarito aparece. */
   const [escolha, setEscolha] = useState<string | null>(null);
   const [decorrido, setDecorrido] = useState(0);
   const [respostas, setRespostas] = useState<Resposta[]>([]);
   const inicio = useRef(Date.now());
+  const rolagem = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   useEffect(() => {
     fetchSession(area, TAMANHO)
@@ -39,37 +66,44 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
       .catch((e: Error) => setErro(e.message));
   }, [area]);
 
-  // Cronômetro discreto do design: conta o tempo da questão, zera na virada.
+  // Cronômetro discreto do design: conta o tempo da questão, para ao responder.
   useEffect(() => {
     if (escolha) return;
     const id = setInterval(() => setDecorrido(Date.now() - inicio.current), 1000);
     return () => clearInterval(id);
   }, [escolha]);
 
+  const responder = useCallback(
+    (question: Question) => {
+      if (!selecionada) return;
+      setEscolha(selecionada);
+      setRespostas((anteriores) => [
+        ...anteriores,
+        {
+          questionId: question.id,
+          escolha: selecionada,
+          correta: question.alternatives.some((a) => a.correct && a.id === selecionada),
+          tempoMs: Date.now() - inicio.current,
+        },
+      ]);
+    },
+    [selecionada],
+  );
+
   const proxima = useCallback(() => {
+    setSelecionada(null);
     setEscolha(null);
     setDecorrido(0);
     inicio.current = Date.now();
     setIndice((i) => i + 1);
-  }, []);
-
-  const responder = useCallback((question: Question, letra: string) => {
-    setEscolha(letra);
-    setRespostas((anteriores) => [
-      ...anteriores,
-      {
-        questionId: question.id,
-        escolha: letra,
-        correta: question.alternatives.some((a) => a.correct && a.id === letra),
-        tempoMs: Date.now() - inicio.current,
-      },
-    ]);
+    rolagem.current?.scrollTo({ y: 0, animated: false });
   }, []);
 
   const recomecar = useCallback(() => {
     setQuestions(null);
     setRespostas([]);
     setIndice(0);
+    setSelecionada(null);
     setEscolha(null);
     setDecorrido(0);
     inicio.current = Date.now();
@@ -103,13 +137,21 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
   }
 
   const correta = question.alternatives.find((a) => a.correct);
-  const acertou = escolha !== null && escolha === correta?.id;
+  const respondida = escolha !== null;
+  const acertou = respondida && escolha === correta?.id;
   const meta = [
     question.metadata.year ? `ENEM ${question.metadata.year}` : null,
     question.metadata.area ? AREA_LABEL[question.metadata.area] : null,
   ]
     .filter(Boolean)
     .join(' · ');
+
+  const estadoDa = (id: string, isCorrect: boolean): EstadoAlternativa => {
+    if (!respondida) return selecionada === id ? 'selecionada' : 'neutra';
+    if (isCorrect) return 'correta';
+    if (escolha === id) return 'errada';
+    return 'descartada';
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: p.bg }} edges={['top', 'bottom']}>
@@ -128,14 +170,17 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
         <Text style={[type.micro, { color: p.textSecondary }]}>
           {indice + 1}/{questions.length}
         </Text>
-        {!escolha && (
+        {!respondida && (
           <Text style={[type.micro, { color: p.textMuted }]}>{formatTime(decorrido)}</Text>
         )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.conteudo} showsVerticalScrollIndicator={false}>
-        {escolha !== null && (
-          <View
+      <ScrollView
+        ref={rolagem}
+        contentContainerStyle={styles.conteudo}
+        showsVerticalScrollIndicator={false}>
+        {respondida && (
+          <Entrada
             style={[
               styles.chip,
               {
@@ -148,7 +193,7 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
                 ? 'Boa! Essa você domina.'
                 : `Quase. A certa era a ${correta?.id} — o comentário explica.`}
             </Text>
-          </View>
+          </Entrada>
         )}
 
         {!!meta && <Text style={[type.micro, { color: p.textMuted }]}>{meta}</Text>}
@@ -163,62 +208,27 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
           <RichText content={question.stem} />
         </View>
 
-        <View style={{ marginTop: space.xl, gap: escolha ? space.sm : space.md }}>
-          {question.alternatives.map((alt) => {
-            const escolhida = escolha === alt.id;
-            const revelada = escolha !== null;
-            const destacar = revelada && (alt.correct || escolhida);
-
-            const cor = alt.correct ? p.success : p.danger;
-            return (
-              <Pressable
-                key={alt.id}
-                testID={`alternativa-${alt.id}`}
-                disabled={revelada}
-                // Toque direto responde: sem botão de confirmar.
-                onPress={() => responder(question, alt.id)}
-                style={({ pressed }) => [
-                  styles.alternativa,
-                  {
-                    backgroundColor: destacar
-                      ? alt.correct
-                        ? p.successSubtle
-                        : p.dangerSubtle
-                      : p.surface,
-                    borderColor: destacar ? cor : pressed ? p.primary : p.border,
-                    borderWidth: destacar ? border.strong : border.normal,
-                    // Alternativas descartadas somem pro fundo, não desaparecem.
-                    opacity: revelada && !destacar ? 0.6 : 1,
-                  },
-                ]}>
-                <View
-                  style={[
-                    styles.letra,
-                    { backgroundColor: destacar ? cor : p.surfaceAlt },
-                  ]}>
-                  <Text
-                    style={[
-                      type.label,
-                      { color: destacar ? p.onPrimary : p.textSecondary },
-                    ]}>
-                    {alt.id}
-                  </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <RichText content={alt.content} variant="alternative" />
-                </View>
-              </Pressable>
-            );
-          })}
+        <View
+          accessibilityRole="radiogroup"
+          style={{ marginTop: space.xl, gap: respondida ? space.sm : space.md }}>
+          {question.alternatives.map((alt) => (
+            <Alternativa
+              key={alt.id}
+              alternativa={alt}
+              estado={estadoDa(alt.id, alt.correct)}
+              // Tocar só marca; quem responde é o botão do rodapé.
+              onPress={() => !respondida && setSelecionada(alt.id)}
+            />
+          ))}
         </View>
 
-        {escolha !== null && (
-          <View
+        {respondida && (
+          <Entrada
             style={[
               styles.gabarito,
               question.explanation
                 ? { backgroundColor: p.surface, borderColor: p.border }
-                : // Sem comentário: cartão tracejado com o gabarito oficial.
+                : // Sem comentário, o cartão tracejado traz o gabarito oficial.
                   // Nunca uma tela vazia.
                   { borderColor: p.border, borderStyle: 'dashed' },
             ]}>
@@ -233,7 +243,7 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
                 {correta?.id}.
               </Text>
             )}
-          </View>
+          </Entrada>
         )}
 
         <Pressable hitSlop={8} style={styles.reportar}>
@@ -241,20 +251,26 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
         </Pressable>
       </ScrollView>
 
-      {/* O rodapé só existe depois da resposta. */}
-      {escolha !== null && (
-        <View style={[styles.rodape, { borderTopColor: p.border, backgroundColor: p.bg }]}>
+      {/* O rodapé só existe quando há o que fazer nele. */}
+      {(selecionada !== null || respondida) && (
+        <Entrada style={[styles.rodape, { borderTopColor: p.border, backgroundColor: p.bg }]}>
           <Pressable
-            onPress={proxima}
+            testID={respondida ? 'proxima' : 'responder'}
+            onPress={() => (respondida ? proxima() : responder(question))}
+            accessibilityRole="button"
             style={({ pressed }) => [
               styles.botao,
               { backgroundColor: pressed ? p.primaryPressed : p.primary },
             ]}>
             <Text style={[type.label, { color: p.onPrimary }]}>
-              {indice + 1 === questions.length ? 'Ver resultado' : 'Próxima'}
+              {!respondida
+                ? 'Responder'
+                : indice + 1 === questions.length
+                  ? 'Ver resultado'
+                  : 'Próxima'}
             </Text>
           </Pressable>
-        </View>
+        </Entrada>
       )}
     </SafeAreaView>
   );
@@ -279,20 +295,6 @@ const styles = StyleSheet.create({
     paddingVertical: space.md,
     paddingHorizontal: space.lg,
     marginBottom: space.lg,
-  },
-  alternativa: {
-    flexDirection: 'row',
-    gap: space.md,
-    borderRadius: radius.lg,
-    padding: space.lg,
-    minHeight: TOUCH_TARGET,
-  },
-  letra: {
-    width: 28,
-    height: 28,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   gabarito: {
     marginTop: space.xl,

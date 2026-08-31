@@ -73,36 +73,71 @@ async function render(questions: Question[]) {
   return tree;
 }
 
-/** Toca direto na alternativa, como o design manda: sem botão de confirmar. */
-async function responder(tree: ReactTestRenderer.ReactTestRenderer, letra: string) {
-  const [alternativa] = tree.root.findAll(
-    (node) => node.props?.testID === `alternativa-${letra}` && typeof node.props?.onPress === 'function',
+async function porTestID(tree: ReactTestRenderer.ReactTestRenderer, id: string) {
+  const [no] = tree.root.findAll(
+    (node) => node.props?.testID === id && typeof node.props?.onPress === 'function',
   );
+  return no;
+}
+
+/** Marca a alternativa e envia: dois passos, como o rodapé exige. */
+async function responder(tree: ReactTestRenderer.ReactTestRenderer, letra: string) {
+  const alternativa = await porTestID(tree, `alternativa-${letra}`);
   if (!alternativa) throw new Error(`alternativa ${letra} não encontrada`);
   await act(async () => alternativa.props.onPress());
+
+  const enviar = await porTestID(tree, 'responder');
+  if (!enviar) throw new Error('botão Responder não apareceu após marcar');
+  await act(async () => enviar.props.onPress());
 }
 
 /** Toca no botão do rodapé, que só existe depois da resposta. */
 async function avancar(tree: ReactTestRenderer.ReactTestRenderer) {
-  const botoes = tree.root.findAll(
-    (node) => typeof node.props?.onPress === 'function' && node.props?.testID === undefined,
-  );
-  const proxima = botoes[botoes.length - 1];
+  const proxima = await porTestID(tree, 'proxima');
   if (!proxima) throw new Error('botão de avançar não encontrado');
   await act(async () => proxima.props.onPress());
 }
 
 describe('SessaoScreen', () => {
-  it('lendo: mostra progresso, meta e alternativas, sem feedback', async () => {
+  it('lendo: mostra progresso, meta e alternativas, sem feedback nem rodapé', async () => {
     const tree = await render([question()]);
     const texto = allText(tree);
 
+    expect(await porTestID(tree, 'responder')).toBeUndefined();
     expect(texto).toContain('1/1');
     expect(texto).toContain('ENEM 2023');
     expect(texto).toContain('Ciências Humanas');
     expect(texto).toContain('Qual é a resposta?');
     expect(texto).not.toContain('Boa!');
     expect(texto).not.toContain('Quase.');
+  });
+
+  it('marcar não responde: o gabarito só aparece depois de enviar', async () => {
+    const tree = await render([question({ explanation: rich('Porque sim.') })]);
+
+    const alternativa = await porTestID(tree, 'alternativa-B');
+    await act(async () => alternativa.props.onPress());
+
+    // Marcada: o rodapé aparece, mas nada de gabarito ainda.
+    expect(await porTestID(tree, 'responder')).toBeDefined();
+    const texto = allText(tree);
+    expect(texto).toContain('Responder');
+    expect(texto).not.toContain('Boa! Essa você domina.');
+    expect(texto).not.toContain('Gabarito comentado');
+  });
+
+  it('dá pra trocar de ideia antes de enviar', async () => {
+    const tree = await render([question({ explanation: rich('Porque sim.') })]);
+
+    const errada = await porTestID(tree, 'alternativa-A');
+    await act(async () => errada.props.onPress());
+    const certa = await porTestID(tree, 'alternativa-B');
+    await act(async () => certa.props.onPress());
+    const enviar = await porTestID(tree, 'responder');
+    await act(async () => enviar.props.onPress());
+
+    // Vale a última marcação, não a primeira.
+    expect(allText(tree)).toContain('Boa! Essa você domina.');
   });
 
   it('acertou: elogia e revela o gabarito', async () => {
