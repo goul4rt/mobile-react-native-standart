@@ -164,3 +164,31 @@ describe('SessaoScreen', () => {
     expect(allText(tree)).toContain('Sem internet.');
   });
 });
+
+describe('RichText', () => {
+  it('renderiza negrito, itálico e link sem mostrar a sintaxe', async () => {
+    const tree = await render([
+      question({
+        stem: rich(
+          'Um **negrito**, um *itálico* e uma fonte: [www.exemplo.gov.br](http://www.exemplo.gov.br/).',
+        ),
+      }),
+    ]);
+
+    // allText separa nós com espaço, então normaliza antes de comparar.
+    const texto = allText(tree).replace(/\s+([,.])/g, '$1');
+    expect(texto).toContain('Um negrito, um itálico e uma fonte: www.exemplo.gov.br.');
+    expect(texto).not.toContain('**');
+    expect(texto).not.toContain('](http');
+  });
+
+  it('junta hard wrap em parágrafo e separa por linha em branco', async () => {
+    const tree = await render([
+      question({ stem: rich('Primeira linha\nsegunda linha.\n\nOutro parágrafo.') }),
+    ]);
+
+    const texto = allText(tree);
+    expect(texto).toContain('Primeira linha segunda linha.');
+    expect(texto).toContain('Outro parágrafo.');
+  });
+});

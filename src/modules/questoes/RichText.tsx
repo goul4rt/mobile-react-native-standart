@@ -4,7 +4,13 @@ import type { RichContent } from '../../shared/api/client';
 import { palettes, radius, space, type } from '../../shared/ui-kit/tokens';
 
 const IMAGE = /!\[[^\]]*\]\((https?:\/\/[^)\s]+)\)/;
-const BOLD = /\*\*(.+?)\*\*/g;
+
+/**
+ * Inline suportado: negrito, itálico e link. O acervo tem ~960 links (quase
+ * todos referência bibliográfica: "Disponível em: [site](url)") — sem tratar,
+ * o aluno lê a sintaxe crua no meio do enunciado.
+ */
+const INLINE = /(\*\*[^*]+\*\*)|(\*[^*\n]+\*)|(\[[^\]]+\]\([^)\s]+\))/g;
 
 /**
  * Imagem de prova escaneada: a maioria vem com fundo branco. No tema escuro ela
@@ -42,20 +48,36 @@ function ScannedImage({ url }: { url: string }) {
   );
 }
 
+type Segmento = { texto: string; estilo?: object };
+
+function segmentar(texto: string): Segmento[] {
+  const saida: Segmento[] = [];
+  let ultimo = 0;
+
+  for (const m of texto.matchAll(INLINE)) {
+    const inicio = m.index;
+    if (inicio > ultimo) saida.push({ texto: texto.slice(ultimo, inicio) });
+
+    const [token, negrito, italico, link] = m;
+    if (negrito) saida.push({ texto: negrito.slice(2, -2), estilo: styles.bold });
+    else if (italico) saida.push({ texto: italico.slice(1, -1), estilo: styles.italic });
+    // Do link fica só o rótulo: a URL não é clicável aqui e polui a leitura.
+    else if (link) saida.push({ texto: link.slice(1, link.indexOf(']')) });
+
+    ultimo = inicio + token.length;
+  }
+  if (ultimo < texto.length) saida.push({ texto: texto.slice(ultimo) });
+  return saida;
+}
+
 function Paragraph({ text, style }: { text: string; style: object }) {
-  const parts = text.split(BOLD);
   return (
     <Text style={style}>
-      {parts.map((part, i) =>
-        // split com grupo de captura devolve o conteúdo do **negrito** nos índices ímpares.
-        i % 2 === 1 ? (
-          <Text key={i} style={styles.bold}>
-            {part}
-          </Text>
-        ) : (
-          part
-        ),
-      )}
+      {segmentar(text).map((s, i) => (
+        <Text key={i} style={s.estilo}>
+          {s.texto}
+        </Text>
+      ))}
     </Text>
   );
 }
@@ -117,4 +139,5 @@ const styles = StyleSheet.create({
   image: { width: '100%' },
   dimmed: { filter: [{ brightness: 0.88 }] },
   bold: { fontFamily: 'PublicSans-Bold' },
+  italic: { fontFamily: 'PublicSans-Italic' },
 });
