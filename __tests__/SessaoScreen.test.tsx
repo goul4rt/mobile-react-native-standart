@@ -159,14 +159,24 @@ describe('SessaoScreen', () => {
     expect(texto).not.toContain('Boa! Essa você domina.');
   });
 
-  it('sem comentário: nunca deixa a tela vazia, informa o gabarito oficial', async () => {
+  it('sem comentário: o chip informa a correta, sem cartão prometendo o que não há', async () => {
     const tree = await render([question()]);
     await responder(tree, 'A');
 
     const texto = allText(tree);
-    expect(texto).toContain('Gabarito comentado');
+    expect(texto).toContain('A certa era a B');
     expect(texto).toContain('ainda não tem comentário');
-    expect(texto).toContain('alternativa B');
+    // Nada de título "Gabarito comentado" quando não existe comentário.
+    expect(texto).not.toContain('Gabarito comentado');
+  });
+
+  it('o feedback vem depois das alternativas, não antes do enunciado', async () => {
+    const tree = await render([question()]);
+    await responder(tree, 'B');
+
+    const texto = allText(tree);
+    expect(texto.indexOf('Qual é a resposta?')).toBeLessThan(texto.indexOf('Boa! Essa você domina.'));
+    expect(texto.indexOf('A errada')).toBeLessThan(texto.indexOf('Boa! Essa você domina.'));
   });
 
   it('fim da sessão: conta acertos e erros do que foi respondido', async () => {

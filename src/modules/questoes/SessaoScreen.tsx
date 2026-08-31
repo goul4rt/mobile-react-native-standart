@@ -59,6 +59,7 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
   const [respostas, setRespostas] = useState<Resposta[]>([]);
   const inicio = useRef(Date.now());
   const rolagem = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const posicaoFeedback = useRef(0);
 
   useEffect(() => {
     fetchSession(area, TAMANHO)
@@ -77,6 +78,11 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
     (question: Question) => {
       if (!selecionada) return;
       setEscolha(selecionada);
+      // Leva o aluno até o resultado: ele pode ter respondido com a lista
+      // rolada, e o feedback fica fora de vista.
+      requestAnimationFrame(() =>
+        rolagem.current?.scrollTo({ y: Math.max(posicaoFeedback.current - 80, 0), animated: true }),
+      );
       setRespostas((anteriores) => [
         ...anteriores,
         {
@@ -179,23 +185,6 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
         ref={rolagem}
         contentContainerStyle={styles.conteudo}
         showsVerticalScrollIndicator={false}>
-        {respondida && (
-          <Entrada
-            style={[
-              styles.chip,
-              {
-                backgroundColor: acertou ? p.successSubtle : p.dangerSubtle,
-                borderColor: acertou ? p.success : p.danger,
-              },
-            ]}>
-            <Text style={[type.label, { color: acertou ? p.successText : p.dangerText }]}>
-              {acertou
-                ? 'Boa! Essa você domina.'
-                : `Quase. A certa era a ${correta?.id} — o comentário explica.`}
-            </Text>
-          </Entrada>
-        )}
-
         {!!meta && <Text style={[type.micro, { color: p.textMuted }]}>{meta}</Text>}
 
         {question.supports.map((s, i) => (
@@ -223,27 +212,37 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
         </View>
 
         {respondida && (
-          <Entrada
-            style={[
-              styles.gabarito,
-              question.explanation
-                ? { backgroundColor: p.surface, borderColor: p.border }
-                : // Sem comentário, o cartão tracejado traz o gabarito oficial.
-                  // Nunca uma tela vazia.
-                  { borderColor: p.border, borderStyle: 'dashed' },
-            ]}>
-            <Text style={[type.heading, { color: p.text, marginBottom: space.sm }]}>
-              Gabarito comentado
-            </Text>
+          // O feedback nasce onde o dedo estava — logo abaixo das alternativas,
+          // não no topo da rolagem.
+          <View onLayout={(e) => (posicaoFeedback.current = e.nativeEvent.layout.y)}>
+            <Entrada
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: acertou ? p.successSubtle : p.dangerSubtle,
+                  borderColor: acertou ? p.success : p.danger,
+                },
+              ]}>
+              <Text style={[type.label, { color: acertou ? p.successText : p.dangerText }]}>
+                {acertou ? 'Boa! Essa você domina.' : `Quase. A certa era a ${correta?.id}.`}
+              </Text>
+            </Entrada>
+
             {question.explanation ? (
-              <RichText content={question.explanation} />
+              <Entrada style={[styles.gabarito, { backgroundColor: p.surface, borderColor: p.border }]}>
+                <Text style={[type.heading, { color: p.text, marginBottom: space.sm }]}>
+                  Gabarito comentado
+                </Text>
+                <RichText content={question.explanation} />
+              </Entrada>
             ) : (
-              <Text style={[type.body, { color: p.textSecondary }]}>
-                Esta questão ainda não tem comentário. O gabarito oficial é a alternativa{' '}
-                {correta?.id}.
+              // Sem comentário não vale um cartão com título prometendo o que
+              // não existe: uma linha discreta basta, a correta já está em verde.
+              <Text style={[type.caption, { color: p.textMuted, marginTop: space.md }]}>
+                Esta questão ainda não tem comentário.
               </Text>
             )}
-          </Entrada>
+          </View>
         )}
 
         <Pressable hitSlop={8} style={styles.reportar}>
