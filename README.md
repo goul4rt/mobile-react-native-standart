@@ -113,5 +113,15 @@ e o app é publicado como `<app>.<repo>.<org>`.
 npm test
 ```
 
-Cobrem os quatro estados da sessão (lendo / acertou / errou / sem comentário),
-o fim de sessão e o caso offline.
+Cobrem os cinco estados da sessão (lendo / marcada / acertou / errou / sem
+comentário), o fim de sessão e o caso offline.
+
+E2E no simulador, com a API rodando:
+
+```bash
+npm run e2e
+```
+
+- `sessao.yaml` — escolher área, marcar, trocar de ideia, responder, virar de
+  questão e sair. Garante que marcar não responde.
+- `sessao-completa.yaml` — as 10 questões até a tela de resultado.

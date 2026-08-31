@@ -1,0 +1,43 @@
+# Percorre as 10 questões e confere a tela de resultado.
+appId: org.reactjs.native.example.Gabarita
+---
+- launchApp:
+    clearState: false
+- assertVisible: '.*O que você quer estudar hoje.*'
+- tapOn:
+    id: 'area-CH'
+- extendedWaitUntil:
+    visible: '1/10'
+    timeout: 20000
+
+- repeat:
+    times: 10
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: 'alternativa-B'
+          direction: DOWN
+          timeout: 20000
+      - tapOn:
+          id: 'alternativa-B'
+      - tapOn:
+          id: 'responder'
+      - tapOn:
+          id: 'proxima'
+
+# Fim: soma de acertos e erros tem que fechar em 10.
+- extendedWaitUntil:
+    visible: 'Fim da sessão'
+    timeout: 15000
+- assertVisible: 'acertos'
+- assertVisible: 'erros'
+- assertVisible: 'tempo'
+# Sem 30 respostas na população, a comparação não é publicada.
+- assertVisible: '.*Ainda faltam respostas de outros alunos.*'
+- assertVisible: 'Mais 10 questões'
+- takeScreenshot: /tmp/fim-sessao
+
+# Voltar pra escolha de área e começar outra.
+- tapOn:
+    id: 'trocar-area'
+- assertVisible: '.*O que você quer estudar hoje.*'

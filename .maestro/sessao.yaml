@@ -1,0 +1,77 @@
+# Fluxo completo: escolher área, responder em dois passos, virar de questão e sair.
+appId: org.reactjs.native.example.Gabarita
+---
+- launchApp:
+    clearState: false
+
+# --- escolha de área ---
+- assertVisible: '.*O que você quer estudar hoje.*'
+- assertVisible:
+    text: '.*questões'
+- tapOn:
+    id: 'area-MT'
+
+# --- sessão: estado "lendo" ---
+# A sessão busca as questões na API; esperar é parte do teste, não flakiness.
+- extendedWaitUntil:
+    visible: '1/10'
+    timeout: 20000
+- assertVisible:
+    text: 'ENEM \d{4} · Matemática'
+# Antes de marcar, o rodapé não existe.
+- assertNotVisible:
+    id: 'responder'
+
+# --- estado "marcada": marcar não responde ---
+# As questões são sorteadas: com texto de apoio longo, as alternativas nascem
+# abaixo da dobra. Rolar até elas é o que o aluno faz também.
+- scrollUntilVisible:
+    element:
+      id: 'alternativa-A'
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: 'alternativa-A'
+- assertVisible:
+    id: 'responder'
+- assertVisible: 'Responder'
+- assertNotVisible: '.*ainda não tem comentário.*'
+
+# --- trocar de ideia antes de enviar ---
+- scrollUntilVisible:
+    element:
+      id: 'alternativa-C'
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: 'alternativa-C'
+- assertVisible:
+    id: 'responder'
+
+# --- enviar ---
+- tapOn:
+    id: 'responder'
+- assertVisible:
+    text: '(Boa! Essa você domina\.|Quase\. A certa era a [A-E]\.)'
+- assertVisible: '.*ainda não tem comentário.*'
+- assertVisible:
+    id: 'proxima'
+# Respondida: o botão de enviar deu lugar ao de avançar.
+- assertNotVisible:
+    id: 'responder'
+
+# --- virar de questão ---
+- tapOn:
+    id: 'proxima'
+- extendedWaitUntil:
+    visible: '2/10'
+    timeout: 10000
+- assertNotVisible:
+    id: 'proxima'
+
+# --- sair volta pra escolha de área ---
+- tapOn:
+    id: 'sair'
+- extendedWaitUntil:
+    visible: '.*O que você quer estudar hoje.*'
+    timeout: 10000
