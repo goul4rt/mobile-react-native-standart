@@ -1,50 +1,87 @@
 # Integração com o Zephyr — notas
 
 Versões: React Native 0.87.1, React 19.2.3, `zephyr-metro-plugin@1.2.4`,
-Node 22, macOS 26 / Xcode 26.
+`@module-federation/metro`, Node 22, macOS 26 / Xcode 26.
+
+Deploy funcionando: `https://aroldogooulart-10-gabarita-mobile-react-native-st-ed44fc6da-ze.zephyrcloud.app/`
+(o `mf-manifest.json` e o `Gabarita.bundle` respondem 200; a raiz dá 404 porque
+o que se publica é o artefato, não um site).
 
 ## O que foi preciso
 
-Uma dependência e um wrapper no `metro.config.js`:
-
 ```bash
-npm install --save-dev zephyr-metro-plugin
+npm install --save-dev zephyr-metro-plugin @module-federation/metro \
+  @module-federation/metro-plugin-rnc-cli
+npm install @module-federation/runtime
 ```
+
+`metro.config.js` — `withZephyr` embrulha o config e `withModuleFederation`
+completa o pipeline:
 
 ```js
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
-const { withZephyr } = require('zephyr-metro-plugin');
-
-module.exports = (async () => {
-  const baseConfig = mergeConfig(getDefaultConfig(__dirname), {});
-  const zephyrConfig = await withZephyr({
-    name: 'Gabarita',
-    target: process.env.PLATFORM === 'android' ? 'android' : 'ios',
-  })(baseConfig);
-  return mergeConfig(baseConfig, zephyrConfig);
-})();
+const zephyrConfig = await withZephyr({ name: 'Gabarita', target: 'ios' })(baseConfig);
+return withModuleFederation(zephyrConfig, mfConfig, { flags: { /* ... */ } });
 ```
 
-Mais os scripts de bundle, onde o upload acontece:
+`react-native.config.js` — registra o comando que **de fato publica**:
 
-```json
-"build:ios": "PLATFORM=ios NODE_ENV=production react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle --assets-dest ios"
+```js
+const wrappedFuncPromise = zephyrCommandWrapper(
+  commands.bundleMFRemoteCommand.func,
+  commands.loadMetroConfig,
+  () => updateManifest(global.__METRO_FEDERATION_MANIFEST_PATH, global.__METRO_FEDERATION_CONFIG),
+);
 ```
 
-Não há comando de "deploy" separado: o envio é efeito colateral do bundle.
+```bash
+react-native bundle-mf-remote --platform ios --dev false
+```
 
 ## Arestas encontradas
 
-### 1. O caminho simples não está documentado
+### 1. O caminho "simples" do README do npm não publica — e não avisa
 
-A página de Metro da documentação só ensina Module Federation: dois apps, host
-e mini app, `@module-federation/metro`, `withModuleFederation`, comando
-`bundle-mf-remote`, `zephyr:dependencies` no `package.json`.
+Esta é a mais séria, e me custou horas.
 
-Mas `withZephyr` funciona sozinho, sem nada disso — é o que este projeto usa.
-Descobri no README do pacote no npm, não na documentação. Para quem só quer
-publicar um app React Native pelo Zephyr, o caminho de entrada aparenta ser bem
-mais complicado do que é.
+O README do pacote no npm mostra um setup sem Module Federation: só `withZephyr`
+no `metro.config.js` e um script com `react-native bundle`. O `TESTING.md` que
+acompanha o pacote reforça, mandando conferir "upload logs" e "deployment URL"
+depois de um `react-native bundle` comum.
+
+Esse caminho **não publica nada**. E falha do pior jeito possível: com sucesso
+aparente. O build autentica, cumprimenta pelo nome, imprime o identificador da
+aplicação com número de versão incrementando a cada tentativa, gera o bundle e
+termina com código 0.
+
+```
+ ZEPHYR   Hi aroldogooulart!
+ ZEPHYR   gabarita.mobile-react-native-standart.goul4rt#2
+LOG:Writing bundle output to: ios/main.jsbundle
+LOG:Done writing bundle output
+```
+
+Nenhum upload, nenhuma URL, nenhum aviso. O contador de versão subindo dá a
+impressão de que algo foi registrado do lado do servidor.
+
+A causa está no config: `withZephyr` instala `customSerializer: null`.
+
+```js
+const z = await withZephyr({ name: 'Gabarita', target: 'ios' })(baseConfig);
+z.serializer.customSerializer === null; // true
+```
+
+Quem publica é o comando `bundle-mf-remote` do `@module-federation/metro-plugin-rnc-cli`,
+embrulhado pelo `zephyrCommandWrapper`. Sem ele não há upload, porque não há o
+que subir: o `mf-manifest.json` e os bundles expostos são gerados por aquele
+pipeline.
+
+Duas sugestões, em ordem de valor:
+
+1. Fazer `withZephyr` avisar quando termina um build sem serializer de
+   federação: *"nenhum artefato para publicar — falta withModuleFederation e o
+   comando bundle-mf-remote"*. Um aviso resolveria o problema inteiro.
+2. Corrigir o README e o TESTING.md do pacote, que hoje descrevem um fluxo que
+   não entrega o que prometem.
 
 ### 2. Repositório git com remote origin é obrigatório, e isso não está na página do Metro
 
@@ -52,17 +89,16 @@ Sem remote configurado:
 
 ```
 Git repository not found. Zephyr REQUIRES a git repository with remote origin.
-Manual configuration is NOT recommended and WILL cause errors in production.
 Configuration accepted for THIS BUILD ONLY.
 ```
 
-O build prossegue, mas se declara inválido para produção. `git init` local não
-basta — precisa de `remote origin`. Faz sentido (o Zephyr deriva org/projeto
-dali), mas é um pré-requisito forte que só aparece quando falha.
+O build prossegue mas se declara inválido para produção. `git init` local não
+basta. Faz sentido — o Zephyr deriva org e projeto dali, e o nome publicado é
+`<app>.<repo>.<org>` — mas é um pré-requisito forte que só aparece quando falha.
 
 ### 3. Sem TTY, a URL de autenticação nunca é impressa
 
-Esta é a mais séria. Em `zephyr-agent/dist/lib/auth/login.mjs`:
+Em `zephyr-agent/dist/lib/auth/login.mjs`:
 
 ```js
 authenticationPromptForTerminal(authUrl, interactive = isTTY) {
@@ -71,30 +107,31 @@ authenticationPromptForTerminal(authUrl, interactive = isTTY) {
 }
 ```
 
-Com TTY: a URL aparece e o Enter abre o browser. Sem TTY — CI, agente,
-terminal com saída redirecionada, qualquer `npm run build:ios > log.txt` — sai
-só a frase genérica. A URL não vai para stdout, stderr nem arquivo, e o processo
-espera um browser que ninguém vai abrir até encerrar sozinho.
+Com TTY a URL aparece e o Enter abre o browser. Sem TTY — CI, agente, qualquer
+`npm run build > log.txt` — sai só a frase genérica. A URL não vai para stdout,
+stderr nem arquivo, e o processo espera um browser que ninguém vai abrir.
 
 A saída documentada para CI é `ZE_SECRET_TOKEN`, mas obtê-lo exige autenticar
-antes. Quem começa por um ambiente sem TTY fica sem caminho.
+antes. Quem começa por um ambiente sem TTY fica sem caminho. Imprimir a URL
+também em modo não interativo resolveria.
 
-Sugestão: imprimir a URL também em modo não interativo, ou gravá-la num arquivo
-de caminho previsível e citá-lo na mensagem.
-
-### 4. Ruído no log a cada bundle
+### 4. Ruído no log
 
 Todo build repete o aviso de `zephyr:dependencies` ausente, mesmo num app sem
-remotes — onde a ausência é a configuração correta.
+remotes, onde a ausência é a configuração correta. E o comando emite
+`Validation Warning: Unknown option "server.tls"` duas vezes por execução —
+vindo do próprio plugin, não da configuração do projeto.
 
 ## O que funcionou bem
 
-- A integração com o Metro é de fato mínima: uma dependência, um wrapper. O
-  bundler não é substituído nem reconfigurado.
-- O plugin não interfere no desenvolvimento: o Metro dev serve o bundle
-  normalmente (4 MB, HTTP 200) mesmo sem autenticação, avisando e seguindo. Só
-  o upload depende do login.
-- As mensagens de erro dizem o que fazer, com os comandos prontos (o aviso de
-  git lista `git init`, `git remote add`, `git commit`).
-- A versão do plugin (1.2.4) instalou sem conflito com RN 0.87, mesmo a
-  documentação exemplificando 0.80.
+- Uma vez no caminho certo, o deploy é rápido e informativo: snapshot em 348 ms,
+  6 assets (5,6 MB) em 872 ms, edge em 1081 ms, com a URL no final.
+- A autenticação persiste em `~/.zephyr`; só o primeiro build pede login.
+- O Metro dev não é afetado: serve o bundle normalmente (4 MB, HTTP 200) mesmo
+  sem autenticação. Só a publicação depende do login.
+- As mensagens de erro que existem dizem o que fazer, com os comandos prontos
+  (o aviso de git lista `git init`, `git remote add`, `git commit`).
+- `zephyr-metro-plugin@1.2.4` instalou sem conflito com RN 0.87, apesar de a
+  documentação exemplificar 0.80.
+- O versionamento imutável é real: cada build vira uma versão com URL própria,
+  visível no dashboard.

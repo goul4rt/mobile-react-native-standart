@@ -47,19 +47,29 @@ Com Zephyr, entra um passo entre o bundle e a distribuição:
 código → Metro → bundle → Zephyr Cloud (versão imutável + CDN) → app busca a versão
 ```
 
-Na prática, `withZephyr` é um wrapper em volta do objeto de configuração do
-Metro:
+Na prática são duas peças. `withZephyr` embrulha o config do Metro e
+`withModuleFederation` monta o artefato publicável:
 
 ```js
 // metro.config.js
 const zephyrConfig = await withZephyr({ name: 'Gabarita', target: 'ios' })(baseConfig);
-module.exports = mergeConfig(baseConfig, zephyrConfig);
+module.exports = withModuleFederation(zephyrConfig, mfConfig, { flags: { /* ... */ } });
+```
+
+E a publicação sai de um comando próprio, registrado em `react-native.config.js`:
+
+```bash
+npm run deploy:ios      # react-native bundle-mf-remote --platform ios --dev false
 ```
 
 O Metro continua fazendo todo o trabalho de bundling. O Zephyr se pendura no
-fim do processo: pega o bundle e os assets, versiona de forma imutável, sobe pro
-edge e devolve uma URL própria daquela versão. Cada build vira uma versão que
-existe pra sempre e pode ser promovida entre ambientes ou revertida.
+fim: pega o bundle e os assets, versiona de forma imutável, sobe pro edge e
+devolve uma URL daquela versão. Cada build vira uma versão que existe pra sempre
+e pode ser promovida entre ambientes ou revertida.
+
+> `react-native bundle` comum **não publica**, mesmo com `withZephyr` no config:
+> ele autentica, gera o bundle e termina com código 0 sem subir nada. O detalhe
+> está em [`docs/zephyr.md`](docs/zephyr.md).
 
 **Por que isso importa num app nativo.** O ciclo normal de correção em mobile é
 build → submissão → revisão da loja → adoção do usuário: dias. Como o bundle JS
@@ -84,6 +94,18 @@ O que eu **não** usaria: substituir o versionamento nativo. O binário continua
 seguindo o ciclo da loja, e mudança que toca código nativo não é OTA.
 
 Notas sobre a integração e as arestas encontradas: [`docs/zephyr.md`](docs/zephyr.md).
+
+## Deploy
+
+```bash
+npm run deploy:ios       # ou deploy:android
+```
+
+Última versão publicada:
+`https://aroldogooulart-10-gabarita-mobile-react-native-st-ed44fc6da-ze.zephyrcloud.app/`
+
+Exige repositório git com `remote origin` — o Zephyr deriva org e projeto dali,
+e o app é publicado como `<app>.<repo>.<org>`.
 
 ## Testes
 
