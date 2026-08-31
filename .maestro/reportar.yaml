@@ -1,0 +1,26 @@
+# Reportar problema: abre o menu, escolhe um motivo e confirma o agradecimento.
+appId: org.reactjs.native.example.Gabarita
+---
+- launchApp:
+    clearState: false
+- assertVisible: '.*O que você quer estudar hoje.*'
+- tapOn:
+    id: 'area-MT'
+- extendedWaitUntil:
+    visible: '1/10'
+    timeout: 20000
+
+- scrollUntilVisible:
+    element:
+      id: 'reportar'
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: 'reportar'
+
+- assertVisible: 'O que está errado nesta questão?'
+- assertVisible: 'Gabarito errado'
+- tapOn: 'Gabarito errado'
+- assertVisible: 'Vamos revisar essa questão.'
+- tapOn: 'OK'
+- assertVisible: '1/10'

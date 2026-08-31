@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   Pressable,
   ScrollView,
@@ -10,7 +11,14 @@ import {
   useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AREA_LABEL, fetchSession, type Question, type Resposta } from '../../shared/api/client';
+import {
+  AREA_LABEL,
+  fetchSession,
+  MOTIVOS_REPORTE,
+  reportarProblema,
+  type Question,
+  type Resposta,
+} from '../../shared/api/client';
 import { border, palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
 import { Alternativa, type EstadoAlternativa } from './Alternativa';
 import { FimSessao } from './FimSessao';
@@ -103,6 +111,26 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
     inicio.current = Date.now();
     setIndice((i) => i + 1);
     rolagem.current?.scrollTo({ y: 0, animated: false });
+  }, []);
+
+  const reportar = useCallback((question: Question) => {
+    Alert.alert(
+      'Reportar problema',
+      'O que está errado nesta questão?',
+      [
+        ...MOTIVOS_REPORTE.map((m) => ({
+          text: m.rotulo,
+          onPress: () => {
+            // Otimista: agradece na hora. Uma falha de rede aqui não é problema
+            // do aluno, e o reporte não vale uma tela de erro.
+            reportarProblema(question.id, m.chave).catch(() => {});
+            Alert.alert('Obrigado', 'Vamos revisar essa questão.');
+          },
+        })),
+        { text: 'Cancelar', style: 'cancel' as const },
+      ],
+      { cancelable: true },
+    );
   }, []);
 
   const recomecar = useCallback(() => {
@@ -214,7 +242,9 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
         {respondida && (
           // O feedback nasce onde o dedo estava — logo abaixo das alternativas,
           // não no topo da rolagem.
-          <View onLayout={(e) => (posicaoFeedback.current = e.nativeEvent.layout.y)}>
+          <View
+            style={styles.feedback}
+            onLayout={(e) => (posicaoFeedback.current = e.nativeEvent.layout.y)}>
             <Entrada
               style={[
                 styles.chip,
@@ -245,7 +275,12 @@ export function SessaoScreen({ area, onSair }: { area: string; onSair: () => voi
           </View>
         )}
 
-        <Pressable hitSlop={8} style={styles.reportar}>
+        <Pressable
+          hitSlop={8}
+          testID="reportar"
+          onPress={() => reportar(question)}
+          accessibilityRole="button"
+          style={styles.reportar}>
           <Text style={[type.caption, { color: p.textMuted }]}>⚑ Reportar problema</Text>
         </Pressable>
       </ScrollView>
@@ -288,12 +323,14 @@ const styles = StyleSheet.create({
   trilho: { flex: 1, height: 4, borderRadius: radius.pill, overflow: 'hidden' },
   progresso: { height: '100%', borderRadius: radius.pill },
   conteudo: { paddingHorizontal: space.xxl, paddingBottom: space.section },
+  // Respiro entre a última alternativa e o resultado: colado, os dois blocos
+  // viram um só e o olho não separa a resposta do retorno.
+  feedback: { marginTop: space.section },
   chip: {
     borderWidth: border.normal,
     borderRadius: radius.md,
     paddingVertical: space.md,
     paddingHorizontal: space.lg,
-    marginBottom: space.lg,
   },
   gabarito: {
     marginTop: space.xl,

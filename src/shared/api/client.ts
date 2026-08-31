@@ -36,6 +36,33 @@ export const AREA_LABEL: Record<string, string> = {
   MT: 'Matemática',
 };
 
+/**
+ * Identifica o aparelho pra deduplicar reportes. Vive só enquanto o app está
+ * aberto — sem storage persistente ainda.
+ * ponytail: trocar por id salvo em disco quando entrar AsyncStorage/MMKV.
+ */
+export const CLIENT_ID = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+  const r = (Math.random() * 16) | 0;
+  return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+});
+
+export const MOTIVOS_REPORTE = [
+  { chave: 'enunciado_incompleto', rotulo: 'Enunciado incompleto' },
+  { chave: 'imagem_nao_carrega', rotulo: 'Imagem não carrega' },
+  { chave: 'gabarito_errado', rotulo: 'Gabarito errado' },
+  { chave: 'alternativa_faltando', rotulo: 'Falta alternativa' },
+  { chave: 'outro', rotulo: 'Outro problema' },
+] as const;
+
+export async function reportarProblema(questionId: string, reason: string): Promise<void> {
+  const res = await fetch(`${API_URL}/v1/reports`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ questionId, reason, clientId: CLIENT_ID }),
+  });
+  if (!res.ok) throw new Error(`API respondeu ${res.status}`);
+}
+
 export type AreaResumo = { code: string; label: string; total: number; years: number[] };
 
 /** Áreas com questões publicadas, direto do acervo. */
