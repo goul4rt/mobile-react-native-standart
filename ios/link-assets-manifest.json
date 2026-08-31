@@ -1,0 +1,41 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/Lexend-Bold.ttf",
+      "sha1": "c3006fdc382624dd82e1fdec223e432d1c5efed2"
+    },
+    {
+      "path": "assets/fonts/Lexend-Regular.ttf",
+      "sha1": "6b1a67df80ac5b837be9112bf27e6c718ed36c08"
+    },
+    {
+      "path": "assets/fonts/Lexend-SemiBold.ttf",
+      "sha1": "6a67f0e2d1549f7a69c8caa2bbc04abe61e15bc9"
+    },
+    {
+      "path": "assets/fonts/OFL-Lexend.txt",
+      "sha1": "90849ce07e303976e08b807a29ac1f808a47afd5"
+    },
+    {
+      "path": "assets/fonts/OFL-PublicSans.txt",
+      "sha1": "808ab37a43224d6327587999992fa7a603ddc826"
+    },
+    {
+      "path": "assets/fonts/PublicSans-Bold.ttf",
+      "sha1": "4506835afb7503686705d8b88490024addc0de58"
+    },
+    {
+      "path": "assets/fonts/PublicSans-Italic.ttf",
+      "sha1": "00599ac8efb8ba50a84854ac159ab9b683fde546"
+    },
+    {
+      "path": "assets/fonts/PublicSans-Regular.ttf",
+      "sha1": "51af805f40c4d8ced34b9eea4e96de3dc5106846"
+    },
+    {
+      "path": "assets/fonts/PublicSans-SemiBold.ttf",
+      "sha1": "659690336a8d357e706ac202158aa9bf6b39524b"
+    }
+  ]
+}
