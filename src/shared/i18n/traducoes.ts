@@ -8,7 +8,7 @@
 export const pt = {
   comum: {
     tentarDeNovo: 'Tentar de novo',
-    semInternet: 'Sem internet.\nTudo salvo aqui — sincronizamos depois.',
+    semInternet: 'Sem internet.\nTudo salvo aqui, sincronizamos depois.',
     cancelar: 'Cancelar',
     naoDeu: 'Não deu',
   },
@@ -96,7 +96,7 @@ export const pt = {
     vazio: 'Responda algumas questões e seus números aparecem aqui.',
     semAmostraArea:
       'Ainda faltam respostas de outros alunos pra comparar. A comparação abre quando a amostra for suficiente.',
-    rodapeComparacao: 'Comparações são sempre com a média geral — nunca com uma pessoa específica.',
+    rodapeComparacao: 'Comparações são sempre com a média geral, nunca com uma pessoa específica.',
     deQuestoes: '%{acertos} de %{total} questões',
     nenhumaResposta: 'nenhuma resposta ainda',
     hoje: 'hoje: %{pct}%',
@@ -119,9 +119,9 @@ export const pt = {
     baixarDados: 'Baixar meus dados',
     baixarDadosDesc: 'Suas respostas e estatísticas em JSON, como garante a LGPD.',
     excluirConta: 'Excluir conta',
-    excluirContaDesc: 'Apaga cadastro, histórico e estatísticas de forma permanente.',
+    excluirContaDesc: 'Apaga cadastro, histórico e estatísticas para sempre.',
     excluirAviso:
-      'Isso não tem volta. Serão apagados de forma permanente:\n\n• seu cadastro e dados pessoais\n• todo o histórico de respostas\n• suas estatísticas e comparações\n\nSeus dados saem dos nossos servidores em até 30 dias. Respostas já usadas em médias ficam anônimas.',
+      'Isso não tem volta. Vamos apagar para sempre:\n\n• seu cadastro e dados pessoais\n• todo o histórico de respostas\n• suas estatísticas e comparações\n\nSeus dados saem dos nossos servidores em até 30 dias. Respostas que já entraram em alguma média ficam anônimas.',
     excluirContinuar: 'Continuar',
     excluirCerteza: 'Tem certeza?',
     excluirUltima: 'Última confirmação: a conta será excluída agora.',
@@ -144,7 +144,7 @@ export const pt = {
 export const en: typeof pt = {
   comum: {
     tentarDeNovo: 'Try again',
-    semInternet: "You're offline.\nEverything is saved here — we'll sync later.",
+    semInternet: "You're offline.\nWe saved everything here and will sync later.",
     cancelar: 'Cancel',
     naoDeu: "That didn't work",
   },
@@ -161,7 +161,7 @@ export const en: typeof pt = {
     senha: 'Password',
     senhaPlaceholder: 'at least %{minimo} characters',
     aceite: 'I have read and accept the Terms of Use and the Privacy Policy.',
-    aceiteAviso: 'The button turns on once you accept.',
+    aceiteAviso: 'The button unlocks once you accept.',
     erroEmailUsado: "We couldn't create an account with that email.",
     erroCredenciais: 'Wrong email or password.',
     erroDados: 'Check the details and try again.',
@@ -214,7 +214,7 @@ export const en: typeof pt = {
     voce: 'you',
     media: 'average',
     baseDe: 'based on %{total} people',
-    semAmostra: "We still need more answers from other students to compare.",
+    semAmostra: 'We need answers from more students before we can compare.',
     maisDez: '10 more questions',
     voltarHome: 'Back to home',
     aguardandoConexao: '%{total} answers waiting for a connection.',
@@ -231,8 +231,8 @@ export const en: typeof pt = {
     deAcerto: 'correct',
     vazio: 'Answer a few questions and your numbers show up here.',
     semAmostraArea:
-      'We still need more answers from other students. The comparison opens once the sample is big enough.',
-    rodapeComparacao: 'Comparisons are always against the overall average — never a specific person.',
+      'We need answers from more students. The comparison opens once the sample is big enough.',
+    rodapeComparacao: 'Comparisons are always against the overall average, never against one person.',
     deQuestoes: '%{acertos} of %{total} questions',
     nenhumaResposta: 'no answers yet',
     hoje: 'today: %{pct}%',
@@ -253,11 +253,11 @@ export const en: typeof pt = {
     portugues: 'Portuguese',
     sair: 'Sign out',
     baixarDados: 'Download my data',
-    baixarDadosDesc: 'Your answers and stats as JSON, as the LGPD guarantees.',
+    baixarDadosDesc: 'Your answers and stats as a JSON file, as Brazilian data protection law requires.',
     excluirConta: 'Delete account',
-    excluirContaDesc: 'Permanently erases your account, history and stats.',
+    excluirContaDesc: 'Erases your account, history and stats for good.',
     excluirAviso:
-      'There is no undo. These will be permanently erased:\n\n• your account and personal data\n• your entire answer history\n• your stats and comparisons\n\nYour data leaves our servers within 30 days. Answers already used in averages stay anonymous.',
+      'There is no undo. We will erase, for good:\n\n• your account and personal data\n• your entire answer history\n• your stats and comparisons\n\nYour data leaves our servers within 30 days. Answers that already went into an average stay anonymous.',
     excluirContinuar: 'Continue',
     excluirCerteza: 'Are you sure?',
     excluirUltima: 'Last confirmation: the account will be deleted now.',
