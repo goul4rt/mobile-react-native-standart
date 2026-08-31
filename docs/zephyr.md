@@ -3,9 +3,26 @@
 Versões: React Native 0.87.1, React 19.2.3, `zephyr-metro-plugin@1.2.4`,
 `@module-federation/metro`, Node 22, macOS 26 / Xcode 26.
 
-Deploy funcionando: `https://aroldogooulart-10-gabarita-mobile-react-native-st-ed44fc6da-ze.zephyrcloud.app/`
-(o `mf-manifest.json` e o `Gabarita.bundle` respondem 200; a raiz dá 404 porque
-o que se publica é o artefato, não um site).
+Deploy funcionando: `https://aroldogooulart-14-gabarita-mobile-react-native-st-1f2c46a26-ze.zephyrcloud.app/`
+(o `mf-manifest.json` e os bundles respondem 200; a raiz dá 404 porque o que se
+publica é o artefato, não um site).
+
+## Módulos federados
+
+Cada módulo do design (§7) vira um expose próprio:
+
+| Expose | Módulo | Por que separado |
+|---|---|---|
+| `./sessao` | questões | o núcleo: sessão e correção |
+| `./home` | questões | entrada do app |
+| `./estatisticas` | estatísticas | métrica nova ou gráfico diferente não toca a sessão |
+| `./perfil` | conta | isola o risco de LGPD e das regras de loja |
+
+O ganho concreto não é técnico, é de blast radius: mudar um gráfico da aba de
+estatísticas publica um bundle que a sessão de questões não carrega. Hoje, com
+uma pessoa só, isso é sobretudo disciplina de fronteira — o retorno aparece
+quando houver times com donos diferentes, e é por isso que `modules/` nunca
+importa de `modules/`.
 
 ## O que foi preciso
 

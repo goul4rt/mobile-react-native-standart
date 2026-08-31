@@ -13,10 +13,19 @@ const pkg = require('./package.json');
 const mfConfig = {
   name: 'Gabarita',
   filename: 'Gabarita.bundle',
-  // A sessão de questões é o módulo que o design prevê como `mf-questoes`.
-  // Expor já agora mantém a fronteira honesta: o que é federável fica visível.
+  /**
+   * Um expose por módulo do design (§7): cada um muda por motivo próprio e
+   * pode ganhar deploy independente sem tocar nos outros.
+   *
+   * - questões: sessão e correção, o núcleo do produto
+   * - estatísticas: métrica nova ou gráfico diferente não mexe na sessão
+   * - conta: isola o risco de LGPD e das regras de loja
+   */
   exposes: {
     './sessao': './src/modules/questoes/SessaoScreen.tsx',
+    './home': './src/modules/questoes/HomeScreen.tsx',
+    './estatisticas': './src/modules/estatisticas/EstatisticasScreen.tsx',
+    './perfil': './src/modules/conta/PerfilScreen.tsx',
   },
   shared: {
     react: {
