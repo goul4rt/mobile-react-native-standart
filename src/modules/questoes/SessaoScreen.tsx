@@ -9,7 +9,8 @@ import {
   useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AREA_LABEL, fetchSession, type Question } from '../../shared/api/client';
+import { AREA_LABEL, fetchSession, type Question, type Resposta } from '../../shared/api/client';
+import { FimSessao } from './FimSessao';
 import { border, palettes, radius, space, TOUCH_TARGET, type } from '../../shared/ui-kit/tokens';
 import { RichText } from './RichText';
 
@@ -30,6 +31,7 @@ export function SessaoScreen() {
   const [indice, setIndice] = useState(0);
   const [escolha, setEscolha] = useState<string | null>(null);
   const [decorrido, setDecorrido] = useState(0);
+  const [respostas, setRespostas] = useState<Resposta[]>([]);
   const inicio = useRef(Date.now());
 
   useEffect(() => {
@@ -50,6 +52,31 @@ export function SessaoScreen() {
     setDecorrido(0);
     inicio.current = Date.now();
     setIndice((i) => i + 1);
+  }, []);
+
+  const responder = useCallback((question: Question, letra: string) => {
+    setEscolha(letra);
+    setRespostas((anteriores) => [
+      ...anteriores,
+      {
+        questionId: question.id,
+        escolha: letra,
+        correta: question.alternatives.some((a) => a.correct && a.id === letra),
+        tempoMs: Date.now() - inicio.current,
+      },
+    ]);
+  }, []);
+
+  const recomecar = useCallback(() => {
+    setQuestions(null);
+    setRespostas([]);
+    setIndice(0);
+    setEscolha(null);
+    setDecorrido(0);
+    inicio.current = Date.now();
+    fetchSession(AREA, TAMANHO)
+      .then(setQuestions)
+      .catch((e: Error) => setErro(e.message));
   }, []);
 
   if (erro) {
@@ -73,11 +100,7 @@ export function SessaoScreen() {
 
   const question = questions[indice];
   if (!question) {
-    return (
-      <SafeAreaView style={[styles.center, { backgroundColor: p.bg }]}>
-        <Text style={[type.title, { color: p.text }]}>Fim da sessão</Text>
-      </SafeAreaView>
-    );
+    return <FimSessao respostas={respostas} area={AREA} onRepetir={recomecar} />;
   }
 
   const correta = question.alternatives.find((a) => a.correct);
@@ -154,7 +177,7 @@ export function SessaoScreen() {
                 testID={`alternativa-${alt.id}`}
                 disabled={revelada}
                 // Toque direto responde: sem botão de confirmar.
-                onPress={() => setEscolha(alt.id)}
+                onPress={() => responder(question, alt.id)}
                 style={({ pressed }) => [
                   styles.alternativa,
                   {

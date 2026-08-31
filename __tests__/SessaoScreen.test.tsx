@@ -60,7 +60,7 @@ function allText(tree: ReactTestRenderer.ReactTestRenderer): string {
 }
 
 async function render(questions: Question[]) {
-  (global as any).fetch = jest.fn().mockResolvedValue({
+  (globalThis as any).fetch = jest.fn().mockResolvedValue({
     ok: true,
     json: async () => ({ items: questions }),
   });
@@ -80,6 +80,15 @@ async function responder(tree: ReactTestRenderer.ReactTestRenderer, letra: strin
   );
   if (!alternativa) throw new Error(`alternativa ${letra} não encontrada`);
   await act(async () => alternativa.props.onPress());
+}
+
+/** Toca no botão do rodapé, que só existe depois da resposta. */
+async function avancar(tree: ReactTestRenderer.ReactTestRenderer) {
+  const botoes = tree.root.findAll(
+    (node) => typeof node.props?.onPress === 'function' && node.props?.testID === undefined,
+  );
+  const proxima = botoes[botoes.length - 1];
+  await act(async () => proxima.props.onPress());
 }
 
 describe('SessaoScreen', () => {
@@ -124,8 +133,27 @@ describe('SessaoScreen', () => {
     expect(texto).toContain('alternativa B');
   });
 
+  it('fim da sessão: conta acertos e erros do que foi respondido', async () => {
+    const tree = await render([
+      question({ id: '11111111-1111-4111-8111-111111111111' }),
+      question({ id: '22222222-2222-4222-8222-222222222222' }),
+    ]);
+
+    await responder(tree, 'B'); // acerta
+    await avancar(tree);
+    await responder(tree, 'A'); // erra
+    await avancar(tree);
+
+    const texto = allText(tree);
+    expect(texto).toContain('Fim da sessão');
+    expect(texto).toContain('1 acertos');
+    expect(texto).toContain('1 erros');
+    // Sem amostra da população, o cartão explica em vez de inventar número.
+    expect(texto).toContain('Ainda faltam respostas de outros alunos');
+  });
+
   it('offline: explica sem culpar o usuário', async () => {
-    (global as any).fetch = jest.fn().mockRejectedValue(new Error('Network request failed'));
+    (globalThis as any).fetch = jest.fn().mockRejectedValue(new Error('Network request failed'));
     let tree!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
       tree = ReactTestRenderer.create(<SessaoScreen />);

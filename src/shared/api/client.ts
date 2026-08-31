@@ -36,6 +36,24 @@ export const AREA_LABEL: Record<string, string> = {
   MT: 'Matemática',
 };
 
+export type Resposta = {
+  questionId: string;
+  escolha: string;
+  correta: boolean;
+  tempoMs: number;
+};
+
+/**
+ * Média da população na área. A API só devolve linha acima de 30 respostas —
+ * abaixo disso a tela explica a ausência em vez de mostrar número frágil.
+ */
+export async function fetchPopulation(area: string): Promise<{ accuracy: number; users: number } | null> {
+  const res = await fetch(`${API_URL}/v1/stats/population`);
+  if (!res.ok) return null;
+  const data = (await res.json()) as { byArea: { area: string; accuracy: number; users: number }[] };
+  return data.byArea.find((a) => a.area === area) ?? null;
+}
+
 export async function fetchSession(area: string, limit = 10): Promise<Question[]> {
   const res = await fetch(`${API_URL}/v1/questions?area=${area}&random=true&limit=${limit}`);
   if (!res.ok) throw new Error(`API respondeu ${res.status}`);
