@@ -5,21 +5,21 @@ const { withZephyr } = require('zephyr-metro-plugin');
 const pkg = require('./package.json');
 
 /**
- * Zephyr não substitui o Metro: embrulha o config dele e sobe o bundle
- * resultante. Mas `withZephyr` sozinho instala `customSerializer: null` — quem
- * gera o artefato que o Zephyr publica é o `withModuleFederation`. Sem ele o
- * build roda, autentica e não sobe nada.
+ * Zephyr does not replace Metro: it wraps Metro's config and uploads the
+ * resulting bundle. But `withZephyr` on its own installs
+ * `customSerializer: null`. What produces the artifact Zephyr publishes is
+ * `withModuleFederation`. Without it the build runs, authenticates, and
+ * uploads nothing.
  */
 const mfConfig = {
   name: 'Questiona',
   filename: 'Questiona.bundle',
   /**
-   * Um expose por módulo do design (§7): cada um muda por motivo próprio e
-   * pode ganhar deploy independente sem tocar nos outros.
+   * One expose per domain module:
    *
-   * - questões: sessão e correção, o núcleo do produto
-   * - estatísticas: métrica nova ou gráfico diferente não mexe na sessão
-   * - conta: isola o risco de LGPD e das regras de loja
+   * - questions: the session and grading, the core of the product
+   * - stats: a new metric or a different chart never touches the session
+   * - account: isolates data-protection and store-policy risk
    */
   exposes: {
     './sessao': './src/modules/questoes/SessaoScreen.tsx',

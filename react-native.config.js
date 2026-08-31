@@ -3,9 +3,9 @@ const { updateManifest } = require('@module-federation/metro');
 const { zephyrCommandWrapper } = require('zephyr-metro-plugin');
 
 /**
- * O upload pro Zephyr não sai do `react-native bundle` comum: nem `withZephyr`
- * nem `withModuleFederation` instalam serializer (`customSerializer` fica
- * null). Quem publica é este comando, embrulhado pelo `zephyrCommandWrapper`.
+ * The upload to Zephyr does not come from a plain `react-native bundle`:
+ * `withZephyr` leaves `customSerializer` null. This command, wrapped by
+ * `zephyrCommandWrapper`, is what actually publishes.
  */
 const wrappedFuncPromise = zephyrCommandWrapper(
   commands.bundleMFRemoteCommand.func,
@@ -17,7 +17,7 @@ const wrappedFuncPromise = zephyrCommandWrapper(
 
 const zephyrCommand = {
   name: 'bundle-mf-remote',
-  description: 'Bundles a Module Federation remote e publica no Zephyr',
+  description: 'Bundles a Module Federation remote and publishes it to Zephyr',
   func: async (...args) => {
     const wrappedFunc = await wrappedFuncPromise;
     return wrappedFunc(...args);
