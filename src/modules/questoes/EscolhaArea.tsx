@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchTaxonomy, type AreaResumo } from '../../shared/api/client';
@@ -15,11 +15,15 @@ export function EscolhaArea({ onEscolher }: { onEscolher: (area: string) => void
   const [areas, setAreas] = useState<AreaResumo[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
-  useEffect(() => {
+  const carregar = useCallback(() => {
+    setErro(null);
+    setAreas(null);
     fetchTaxonomy()
       .then(setAreas)
       .catch((e: Error) => setErro(e.message));
   }, []);
+
+  useEffect(carregar, [carregar]);
 
   return (
     <SafeAreaView style={[styles.tela, { backgroundColor: p.bg }]} edges={['top', 'bottom']}>
@@ -28,9 +32,22 @@ export function EscolhaArea({ onEscolher }: { onEscolher: (area: string) => void
         <Text style={[type.caption, { color: p.textMuted }]}>Dá pra mudar quando quiser.</Text>
 
         {erro && (
-          <Text style={[type.body, { color: p.textSecondary, marginTop: space.xl }]}>
-            Sem internet. Tudo salvo aqui — sincronizamos depois.
-          </Text>
+          <View style={{ marginTop: space.xl, gap: space.lg }}>
+            <Text style={[type.body, { color: p.textSecondary }]}>
+              Sem internet. Tudo salvo aqui — sincronizamos depois.
+            </Text>
+            {/* Sem isto o aluno fica preso: só fechando e reabrindo o app. */}
+            <Pressable
+              testID="tentar-de-novo"
+              onPress={carregar}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                styles.botao,
+                { backgroundColor: pressed ? p.primaryPressed : p.primary },
+              ]}>
+              <Text style={[type.label, { color: p.onPrimary }]}>Tentar de novo</Text>
+            </Pressable>
+          </View>
         )}
 
         {!areas && !erro && <ActivityIndicator color={p.primary} style={{ marginTop: space.section }} />}
@@ -63,6 +80,12 @@ export function EscolhaArea({ onEscolher }: { onEscolher: (area: string) => void
 const styles = StyleSheet.create({
   tela: { flex: 1 },
   conteudo: { flex: 1, padding: space.xxl, justifyContent: 'center' },
+  botao: {
+    height: 52,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cartao: {
     borderWidth: border.normal,
     borderRadius: radius.xl,

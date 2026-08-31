@@ -12,7 +12,8 @@
     "build:android": "PLATFORM=android NODE_ENV=production react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
     "deploy:ios": "PLATFORM=ios react-native bundle-mf-remote --platform ios --dev false",
     "deploy:android": "PLATFORM=android react-native bundle-mf-remote --platform android --dev false",
-    "e2e": "maestro test .maestro/"
+    "e2e": "maestro test .maestro/ --exclude-tags offline",
+    "e2e:offline": "maestro test .maestro/sem-api.yaml"
   },
   "dependencies": {
     "@module-federation/runtime": "^2.9.0",

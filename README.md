@@ -125,3 +125,7 @@ npm run e2e
 - `sessao.yaml` — escolher área, marcar, trocar de ideia, responder, virar de
   questão e sair. Garante que marcar não responde.
 - `sessao-completa.yaml` — as 10 questões até a tela de resultado.
+- `reportar.yaml` — reportar problema numa questão.
+
+Com a API derrubada, `npm run e2e:offline` confere que o app avisa e oferece
+"Tentar de novo" em vez de virar beco sem saída.
