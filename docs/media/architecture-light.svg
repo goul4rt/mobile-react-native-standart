@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 470" width="880" height="470" role="img" aria-label="Where Zephyr sits in the React Native build pipeline. Metro bundles the source, Module Federation writes the manifest and the exposed bundles, and bundle-mf-remote uploads them to Zephyr's edge. A plain react-native bundle writes the file to disk and publishes nothing, exiting with code zero.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <polygon points="0,0 10,5 0,10" fill="#1B1B22"/>
+    </marker>
+    <marker id="ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <polygon points="0,0 10,5 0,10" fill="#0B7C48"/>
+    </marker>
+  </defs>
+  <rect width="880" height="470" fill="#FFFFFF"/>
+
+  <text x="32" y="42" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#5B3AE8" letter-spacing="1">THE PUBLISHING PATH</text>
+
+  <rect x="32" y="62" width="132" height="62" rx="9" fill="#FAFAFC" stroke="#D8D8E0" stroke-width="1.5"/>
+  <text x="98" y="90" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#1B1B22">source</text>
+  <text x="98" y="108" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">src/modules</text>
+
+  <line x1="164" y1="93" x2="212" y2="93" stroke="#1B1B22" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="214" y="62" width="150" height="62" rx="9" fill="#FAFAFC" stroke="#D8D8E0" stroke-width="1.5"/>
+  <text x="289" y="90" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#1B1B22">Metro</text>
+  <text x="289" y="108" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">resolve · transform</text>
+
+  <line x1="364" y1="93" x2="412" y2="93" stroke="#1B1B22" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="414" y="62" width="168" height="62" rx="9" fill="#FAFAFC" stroke="#5B3AE8" stroke-width="1.5"/>
+  <text x="498" y="86" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#1B1B22">Module Federation</text>
+  <text x="498" y="104" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">mf-manifest.json</text>
+  <text x="498" y="118" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">+ exposed bundles</text>
+
+  <line x1="582" y1="93" x2="630" y2="93" stroke="#0B7C48" stroke-width="1.5" marker-end="url(#ok)"/>
+  <text x="606" y="82" text-anchor="middle" font-family="ui-monospace, monospace" font-size="9" fill="#0B7C48">upload</text>
+
+  <rect x="632" y="62" width="164" height="62" rx="9" fill="#FAFAFC" stroke="#0B7C48" stroke-width="1.5"/>
+  <text x="714" y="86" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#1B1B22">Zephyr edge</text>
+  <text x="714" y="104" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">immutable version</text>
+  <text x="714" y="118" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">its own URL</text>
+
+  <text x="32" y="159" font-family="ui-monospace, monospace" font-size="11" fill="#61616B">run by</text>
+  <rect x="80" y="144" width="286" height="22" rx="5" fill="#EFEBFF"/>
+  <text x="92" y="159" font-family="ui-monospace, monospace" font-size="11" fill="#5B3AE8">react-native bundle-mf-remote</text>
+
+  <line x1="32" y1="196" x2="848" y2="196" stroke="#D8D8E0" stroke-width="1"/>
+
+  <text x="32" y="228" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#C22C38" letter-spacing="1">THE PATH THAT LOOKS LIKE IT WORKED</text>
+
+  <rect x="32" y="248" width="132" height="62" rx="9" fill="#FAFAFC" stroke="#D8D8E0" stroke-width="1.5"/>
+  <text x="98" y="284" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#1B1B22">source</text>
+
+  <line x1="164" y1="279" x2="212" y2="279" stroke="#1B1B22" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="214" y="248" width="150" height="62" rx="9" fill="#FAFAFC" stroke="#D8D8E0" stroke-width="1.5"/>
+  <text x="289" y="272" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#1B1B22">Metro</text>
+  <text x="289" y="292" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#C22C38">customSerializer: null</text>
+
+  <line x1="364" y1="279" x2="412" y2="279" stroke="#1B1B22" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="414" y="248" width="168" height="62" rx="9" fill="#FAFAFC" stroke="#D8D8E0" stroke-width="1.5"/>
+  <text x="498" y="278" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#1B1B22">main.jsbundle</text>
+  <text x="498" y="296" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">written to disk</text>
+
+  <line x1="582" y1="279" x2="626" y2="279" stroke="#C22C38" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <line x1="636" y1="266" x2="656" y2="292" stroke="#C22C38" stroke-width="2"/>
+  <line x1="656" y1="266" x2="636" y2="292" stroke="#C22C38" stroke-width="2"/>
+  <text x="674" y="276" font-family="ui-monospace, monospace" font-size="11" fill="#C22C38">nothing published</text>
+  <text x="674" y="294" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">exit code 0, no warning</text>
+
+  <text x="32" y="345" font-family="ui-monospace, monospace" font-size="11" fill="#61616B">run by</text>
+  <rect x="80" y="330" width="196" height="22" rx="5" fill="#FCE9EA"/>
+  <text x="92" y="345" font-family="ui-monospace, monospace" font-size="11" fill="#C22C38">react-native bundle</text>
+
+  <line x1="32" y1="382" x2="848" y2="382" stroke="#D8D8E0" stroke-width="1"/>
+
+  <text x="32" y="410" font-family="ui-monospace, monospace" font-size="11" fill="#1B1B22">Four modules published as independent remotes:</text>
+  <text x="32" y="432" font-family="ui-monospace, monospace" font-size="11" fill="#5B3AE8">./sessao    ./home    ./estatisticas    ./perfil</text>
+  <text x="32" y="452" font-family="ui-monospace, monospace" font-size="10" fill="#61616B">Nothing under modules/ imports from another modules/. Only from shared/.</text>
+</svg>
