@@ -1,97 +1,95 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Gabarita
 
-# Getting Started
+App de estudo por questões do ENEM: responde, corrige na hora e compara o
+desempenho com o dos outros. React Native com Metro, deploy pelo Zephyr Cloud.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Rodar
 
-## Step 1: Start Metro
-
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```bash
+npm install
+cd ios && pod install && cd ..
+npm start                      # Metro
+npm run ios                    # ou: npm run android
 ```
 
-## Step 2: Build and run your app
+O app consome uma API de questões em `http://localhost:3000` (`src/shared/api/client.ts`).
+No emulador Android o host vira `10.0.2.2` automaticamente.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## Estrutura
 
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```
+src/
+  modules/questoes/   sessão, fim de sessão, escolha de área, renderizador
+  shared/ui-kit/      tokens de cor, tipografia, espaçamento
+  shared/api/         cliente HTTP
 ```
 
-### iOS
+As fronteiras entre `modules/` são rígidas de propósito: nada em `modules/`
+importa de outro `modules/`, só de `shared/`. É o que permite cada pasta virar
+um remote de Module Federation depois sem refatoração.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## Onde o Zephyr entra
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+**Ele não substitui o Metro — embrulha o resultado dele.**
 
-```sh
-bundle install
+O pipeline de um app React Native, sem Zephyr:
+
+```
+código → Metro (resolve, transforma, empacota) → main.jsbundle → app nativo → loja
 ```
 
-Then, and every time you update your native dependencies, run:
+O Metro é o bundler: resolve os imports, roda as transformações de Babel e
+cospe um arquivo JS único mais os assets. Ele não sabe o que acontece depois.
 
-```sh
-bundle exec pod install
+Com Zephyr, entra um passo entre o bundle e a distribuição:
+
+```
+código → Metro → bundle → Zephyr Cloud (versão imutável + CDN) → app busca a versão
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+Na prática, `withZephyr` é um wrapper em volta do objeto de configuração do
+Metro:
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+```js
+// metro.config.js
+const zephyrConfig = await withZephyr({ name: 'Gabarita', target: 'ios' })(baseConfig);
+module.exports = mergeConfig(baseConfig, zephyrConfig);
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+O Metro continua fazendo todo o trabalho de bundling. O Zephyr se pendura no
+fim do processo: pega o bundle e os assets, versiona de forma imutável, sobe pro
+edge e devolve uma URL própria daquela versão. Cada build vira uma versão que
+existe pra sempre e pode ser promovida entre ambientes ou revertida.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+**Por que isso importa num app nativo.** O ciclo normal de correção em mobile é
+build → submissão → revisão da loja → adoção do usuário: dias. Como o bundle JS
+é um arquivo baixável, o Zephyr permite trocar a versão do JS sem passar pela
+loja (OTA), respeitando a regra da Apple e do Google de que só o JS muda, nunca
+o binário nativo.
 
-## Step 3: Modify your app
+**Onde eu usaria num projeto real.** Três coisas, nesta ordem de valor:
 
-Now that you have successfully run the app, let's make changes!
+1. *Preview por branch.* Cada PR gera uma versão com URL própria. QA e produto
+   abrem o app apontando pra aquela versão, sem TestFlight e sem esperar build
+   nativo.
+2. *Rollback de JS em minutos.* Bug em produção que está no JS deixa de ser um
+   hotfix submetido à loja e vira apontar o ambiente pra versão anterior.
+3. *Module Federation, quando houver times.* Aí cada domínio (questões, conta,
+   estatísticas) vira um remote com deploy próprio, e o Zephyr resolve qual
+   versão de cada remote o host carrega por ambiente. Enquanto for uma pessoa
+   só, isso é complexidade sem retorno — as fronteiras de pasta acima já deixam
+   o caminho aberto.
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+O que eu **não** usaria: substituir o versionamento nativo. O binário continua
+seguindo o ciclo da loja, e mudança que toca código nativo não é OTA.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+Notas sobre a integração e as arestas encontradas: [`docs/zephyr.md`](docs/zephyr.md).
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## Testes
 
-## Congratulations! :tada:
+```bash
+npm test
+```
 
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Cobrem os quatro estados da sessão (lendo / acertou / errou / sem comentário),
+o fim de sessão e o caso offline.
