@@ -5,30 +5,36 @@ appId: org.reactjs.native.example.Gabarita
 - launchApp:
     clearState: true
 - tapOn:
-    id: 'criar-conta'
+    id: 'create-account'
 - tapOn:
-    id: 'campo-nome'
+    id: 'field-name'
 - inputText: 'Bruno'
 - tapOn:
-    id: 'campo-email'
+    id: 'field-email'
 - inputText: 'bruno-${Date.now()}@exemplo.test'
 - tapOn:
-    id: 'campo-senha'
+    id: 'field-password'
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'senha-de-teste-123'
 - hideKeyboard
+# scrollUntilVisible em vez de tapOn direto: com o teclado recolhendo, o
+# checkbox pode ainda estar fora da área visível no instante do toque.
+# Espera o teclado terminar de recolher: sem isto o checkbox ainda está
+# coberto no instante do toque, e a tela não tem scroll para compensar.
+- waitForAnimationToEnd:
+    timeout: 3000
 - tapOn:
-    id: 'aceite'
+    id: 'consent'
 - tapOn:
-    id: 'enviar-cadastro'
+    id: 'submit-signup'
 - extendedWaitUntil:
     visible: 'Oi, Bruno'
     timeout: 25000
 
 # Conta nova: nenhuma estatística ainda.
 - tapOn:
-    id: 'tab-estatisticas'
+    id: 'tab-stats'
 - assertVisible: '.*Responda algumas questões.*'
 
 # Responde uma sessão inteira.
@@ -44,15 +50,15 @@ appId: org.reactjs.native.example.Gabarita
     commands:
       - scrollUntilVisible:
           element:
-            id: 'alternativa-A'
+            id: 'choice-A'
           direction: DOWN
           timeout: 20000
       - tapOn:
-          id: 'alternativa-A'
+          id: 'choice-A'
       - tapOn:
-          id: 'responder'
+          id: 'answer'
       - tapOn:
-          id: 'proxima'
+          id: 'next'
 - extendedWaitUntil:
     visible: 'Fim da sessão'
     timeout: 15000
@@ -61,7 +67,7 @@ appId: org.reactjs.native.example.Gabarita
     visible: 'Voltar pra home'
     timeout: 20000
 - tapOn:
-    id: 'trocar-area'
+    id: 'change-subject'
 
 # De volta na home: o cartão de continuar aparece com o que foi respondido.
 - extendedWaitUntil:
@@ -71,7 +77,7 @@ appId: org.reactjs.native.example.Gabarita
 
 # E as estatísticas deixaram de estar vazias.
 - tapOn:
-    id: 'tab-estatisticas'
+    id: 'tab-stats'
 - extendedWaitUntil:
     visible: 'ACERTO POR ÁREA'
     timeout: 20000
@@ -81,6 +87,6 @@ appId: org.reactjs.native.example.Gabarita
 
 # A outra aba respeita a amostra mínima da população.
 - tapOn:
-    id: 'aba-outros'
+    id: 'tab-others'
 - assertVisible: '.*Comparações são sempre com a média geral.*'
 - takeScreenshot: /tmp/comparacao

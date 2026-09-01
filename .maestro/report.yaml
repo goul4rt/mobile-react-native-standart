@@ -12,11 +12,11 @@ appId: org.reactjs.native.example.Gabarita
 
 - scrollUntilVisible:
     element:
-      id: 'reportar'
+      id: 'report'
     direction: DOWN
     timeout: 20000
 - tapOn:
-    id: 'reportar'
+    id: 'report'
 
 - assertVisible: 'O que está errado nesta questão?'
 - assertVisible: 'Gabarito errado'

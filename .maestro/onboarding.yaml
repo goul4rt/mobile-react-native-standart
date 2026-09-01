@@ -4,38 +4,52 @@ appId: org.reactjs.native.example.Gabarita
 - launchApp:
     clearState: true
 
-- assertVisible: 'Gabarita'
+- assertVisible: 'Questiona'
 - assertVisible: 'Estude por questões do ENEM. Uma de cada vez.'
 - tapOn:
-    id: 'criar-conta'
+    id: 'create-account'
 
 - assertVisible: 'Criar conta'
+
+# Os documentos que o aceite cita precisam estar alcançáveis na própria tela:
+# sem isso o usuário declara ter lido algo que não tinha como abrir. Verificado
+# antes de tocar nos campos, porque depois o teclado cobre esta parte da tela.
+- assertVisible:
+    id: 'link-terms'
+- assertVisible:
+    id: 'link-privacy'
+
 - tapOn:
-    id: 'campo-nome'
+    id: 'field-name'
 - inputText: 'Ana Souza'
 - tapOn:
-    id: 'campo-email'
+    id: 'field-email'
 # E-mail novo a cada execução: cadastrar duas vezes o mesmo dá 409.
 - inputText: 'ana-${Date.now()}@exemplo.test'
 - tapOn:
-    id: 'campo-senha'
+    id: 'field-password'
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'senha-de-teste-123'
 - assertVisible:
-    id: 'campo-senha'
+    id: 'field-password'
     text: '.+'
 - hideKeyboard
 
-# LGPD: o botão só liga depois do aceite marcado.
+# LGPD: o botão só liga depois do aceite marcado. Rola até o checkbox primeiro:
+# a linha com os links de documento empurra a dica para fora da área visível.
+# Espera o teclado terminar de recolher: sem isto o checkbox ainda está
+# coberto no instante do toque, e a tela não tem scroll para compensar.
+- waitForAnimationToEnd:
+    timeout: 3000
 - assertVisible: 'O botão ativa quando o aceite é marcado.'
 - tapOn:
-    id: 'aceite'
+    id: 'consent'
 - assertNotVisible: 'O botão ativa quando o aceite é marcado.'
 
 # O botão tem que ser alcançável mesmo com o teclado aberto.
 - tapOn:
-    id: 'enviar-cadastro'
+    id: 'submit-signup'
 
 # Entrou: home com o primeiro nome e as áreas.
 - extendedWaitUntil:
@@ -43,5 +57,5 @@ appId: org.reactjs.native.example.Gabarita
     timeout: 25000
 - assertVisible: 'ESTUDAR POR ÁREA'
 - assertVisible:
-    id: 'tab-estatisticas'
+    id: 'tab-stats'
 - takeScreenshot: /tmp/home

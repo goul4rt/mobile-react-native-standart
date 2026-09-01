@@ -30,7 +30,7 @@ export const pt = {
     namePlaceholder: 'Como quer ser chamado',
     email: 'E-mail',
     password: 'Senha',
-    passwordPlaceholder: 'mínimo %{minimo} caracteres',
+    passwordPlaceholder: 'mínimo %{min} caracteres',
     consent: 'Li e aceito os Termos de Uso e a Política de Privacidade.',
     consentBefore: 'Li e aceito os ',
     consentBetween: ' e a ',
@@ -50,7 +50,7 @@ export const pt = {
   },
   home: {
     tab: 'Início',
-    greeting: 'Oi, %{nome}',
+    greeting: 'Oi, %{name}',
     greetingNoName: 'Oi',
     continue: 'CONTINUAR DE ONDE PAROU',
     answered: '%{total} respondidas · %{pct}% de acerto',
@@ -62,7 +62,7 @@ export const pt = {
   },
   session: {
     gotItRight: 'Boa! Essa você domina.',
-    gotItWrong: 'Quase. A certa era a %{letra}.',
+    gotItWrong: 'Quase. A certa era a %{letter}.',
     noExplanation: 'Esta questão ainda não tem comentário.',
     answerExplained: 'Gabarito comentado',
     answer: 'Responder',
@@ -107,7 +107,7 @@ export const pt = {
     noSampleSubject:
       'Ainda faltam respostas de outros alunos pra comparar. A comparação abre quando a amostra for suficiente.',
     comparisonFooter: 'Comparações são sempre com a média geral, nunca com uma pessoa específica.',
-    ofQuestions: '%{acertos} de %{total} questões',
+    ofQuestions: '%{correct} de %{total} questões',
     noAnswers: 'nenhuma resposta ainda',
     today: 'hoje: %{pct}%',
   },
@@ -176,7 +176,7 @@ export const en: typeof pt = {
     namePlaceholder: 'What should we call you',
     email: 'Email',
     password: 'Password',
-    passwordPlaceholder: 'at least %{minimo} characters',
+    passwordPlaceholder: 'at least %{min} characters',
     consent: 'I have read and accept the Terms of Use and the Privacy Policy.',
     consentBefore: 'I have read and accept the ',
     consentBetween: ' and the ',
@@ -196,7 +196,7 @@ export const en: typeof pt = {
   },
   home: {
     tab: 'Home',
-    greeting: 'Hi, %{nome}',
+    greeting: 'Hi, %{name}',
     greetingNoName: 'Hi',
     continue: 'PICK UP WHERE YOU LEFT OFF',
     answered: '%{total} answered · %{pct}% correct',
@@ -208,7 +208,7 @@ export const en: typeof pt = {
   },
   session: {
     gotItRight: 'Nice! You know this one.',
-    gotItWrong: 'Close. The right answer was %{letra}.',
+    gotItWrong: 'Close. The right answer was %{letter}.',
     noExplanation: "This question doesn't have an explanation yet.",
     answerExplained: 'Explanation',
     answer: 'Answer',
@@ -253,7 +253,7 @@ export const en: typeof pt = {
     noSampleSubject:
       'We need answers from more students. The comparison opens once the sample is big enough.',
     comparisonFooter: 'Comparisons are always against the overall average, never against one person.',
-    ofQuestions: '%{acertos} of %{total} questions',
+    ofQuestions: '%{correct} of %{total} questions',
     noAnswers: 'no answers yet',
     today: 'today: %{pct}%',
   },

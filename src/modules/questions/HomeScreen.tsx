@@ -109,8 +109,10 @@ export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
               {rotuloArea(continuar[0])}
             </Text>
             <Text style={[type.caption, { color: palette.onPrimary, opacity: 0.85 }]}>
-              {continuar[1].total} answered ·{' '}
-              {Math.round((continuar[1].correct / continuar[1].total) * 100)}% de acerto
+              {t('home.answered', {
+                total: continuar[1].total,
+                pct: Math.round((continuar[1].correct / continuar[1].total) * 100),
+              })}
             </Text>
           </Pressable>
         )}
@@ -136,8 +138,11 @@ export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
                   </Text>
                   <Text style={[type.caption, { color: palette.textMuted }]}>
                     {meu
-                      ? `${Math.round((meu.correct / meu.total) * 100)}% de acerto · ${meu.total} answered`
-                      : `${area.total} questões`}
+                      ? t('home.accuracyOfAnswered', {
+                          pct: Math.round((meu.correct / meu.total) * 100),
+                          total: meu.total,
+                        })
+                      : t('home.questions', { total: area.total })}
                   </Text>
                 </View>
               </Pressable>
@@ -149,8 +154,10 @@ export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
           <View style={[styles.resumo, { backgroundColor: palette.surfaceAlt }]}>
             <Text style={[type.micro, { color: palette.textMuted }]}>{t('home.thisWeek')}</Text>
             <Text style={[type.body, { color: palette.text }]}>
-              {semana.total} {semana.total === 1 ? 'questão' : 'questões'} ·{' '}
-              {Math.round((semana.correct / semana.total) * 100)}% de acerto
+              {t('home.weekSummary', {
+                total: semana.total,
+                pct: Math.round((semana.correct / semana.total) * 100),
+              })}
             </Text>
           </View>
         )}

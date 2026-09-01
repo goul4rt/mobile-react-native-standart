@@ -1,13 +1,19 @@
 import { Platform } from 'react-native';
 
 /**
- * O emulador do Android não enxerga `localhost` da máquina: 10.0.2.2 é o alias
- * do host. No simulador do iOS, localhost é o host mesmo.
+ * The Android emulator cannot see the machine's `localhost`: 10.0.2.2 is the
+ * alias for the host. On the iOS simulator, localhost is the host itself.
  */
 const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-// ponytail: constante. Vira variável de ambiente quando houver mais de um
-// ambiente (staging/prod) pra apontar.
-export const API_URL = `http://${HOST}:3000`;
+
+/**
+ * The production bundle must point at the public API: `deploy:ios` runs with
+ * `--dev false`, and a published bundle pointing at localhost reaches nothing
+ * on the device of whoever installed it.
+ */
+export const API_URL = __DEV__
+  ? `http://${HOST}:3000`
+  : 'https://questiona.dublapedia.com';
 
 export type Media = { id: string; url: string; alt?: string };
 export type RichContent = { format: 'markdown' | 'html'; body: string; media: Media[] };
@@ -30,18 +36,23 @@ export type Question = {
 };
 
 /**
- * Identifica o aparelho pra deduplicar reportes. Vive só enquanto o app está
- * aberto — sem storage persistente ainda.
- * ponytail: trocar por id salvo em disco quando entrar AsyncStorage/MMKV.
+ * Identifies the device to deduplicate reports. Lives only while the app is
+ * open, with no persistent storage yet.
+ * ponytail: swap for a disk-backed id once AsyncStorage/MMKV is in play.
  */
 export const CLIENT_ID = uuid();
 
-export const MOTIVOS_REPORTE = [
-  { chave: 'enunciado_incompleto', rotulo: 'Enunciado incompleto' },
-  { chave: 'imagem_nao_carrega', rotulo: 'Imagem não carrega' },
-  { chave: 'gabarito_errado', rotulo: 'Gabarito errado' },
-  { chave: 'alternativa_faltando', rotulo: 'Falta alternativa' },
-  { chave: 'outro', rotulo: 'Outro problema' },
+/**
+ * The `key` is a contract with the API, which validates it and already has rows
+ * stored with it: it does not change. The label comes from i18n, or the menu
+ * renders in Portuguese while the interface is in English.
+ */
+export const REPORT_REASONS = [
+  { key: 'enunciado_incompleto', label: 'reasonStatement' },
+  { key: 'imagem_nao_carrega', label: 'reasonImage' },
+  { key: 'gabarito_errado', label: 'reasonAnswerKey' },
+  { key: 'alternativa_faltando', label: 'reasonChoice' },
+  { key: 'outro', label: 'reasonOther' },
 ] as const;
 
 export async function reportarProblema(questionId: string, reason: string): Promise<void> {
@@ -55,7 +66,7 @@ export async function reportarProblema(questionId: string, reason: string): Prom
 
 export type AreaResumo = { code: string; label: string; total: number; years: number[] };
 
-/** Áreas com questões publicadas, direto do acervo. */
+/** Subjects with published questions, straight from the corpus. */
 export async function fetchTaxonomy(): Promise<AreaResumo[]> {
   const res = await fetch(`${API_URL}/v1/taxonomy`);
   if (!res.ok) throw new Error(`API respondeu ${res.status}`);
@@ -64,7 +75,7 @@ export async function fetchTaxonomy(): Promise<AreaResumo[]> {
 }
 
 export type Resposta = {
-  /** Gerado no aparelho: é o que torna o reenvio idempotente no servidor. */
+  /** Generated on the device: this is what makes a resend idempotent server-side. */
   clientId: string;
   questionId: string;
   escolha: string;
@@ -73,8 +84,9 @@ export type Resposta = {
 };
 
 /**
- * Média da população na área. A API só devolve linha acima de 30 respostas —
- * abaixo disso a tela explica a ausência em vez de mostrar número frágil.
+ * Population average for the subject. The API only returns a row above 30
+ * answers; below that the screen explains the absence instead of showing a
+ * fragile number.
  */
 export async function fetchPopulation(area: string): Promise<{ accuracy: number; users: number } | null> {
   const res = await fetch(`${API_URL}/v1/stats/population`);
@@ -86,7 +98,7 @@ export async function fetchPopulation(area: string): Promise<{ accuracy: number;
 export async function fetchSession(
   area: string,
   limit = 10,
-  /** Português mais a língua estrangeira escolhida — nunca só uma delas. */
+  /** Portuguese plus the chosen foreign language, never just one of them. */
   idiomas: string[] = ['pt'],
 ): Promise<Question[]> {
   const lingua = `&language=${idiomas.join(',')}`;
@@ -97,7 +109,7 @@ export async function fetchSession(
 }
 
 /* ------------------------------------------------------------------ */
-/* Estatísticas                                                        */
+/* Statistics                                                          */
 /* ------------------------------------------------------------------ */
 
 export type EstatisticaArea = {
@@ -140,7 +152,7 @@ export async function fetchPopulacaoPorArea(): Promise<EstatisticaPopulacao[]> {
   return data.byArea;
 }
 
-/** Envia o lote de respostas. Idempotente por clientId: reenviar não duplica. */
+/** Sends the batch of answers. Idempotent by clientId: resending never duplicates. */
 export async function enviarRespostas(
   token: string,
   respostas: { clientId: string; questionId: string; chosen: string; timeMs: number }[],
@@ -161,7 +173,7 @@ export async function enviarRespostas(
   if (!res.ok) throw new Error(`API respondeu ${res.status}`);
 }
 
-/** UUID v4 sem dependência — o Hermes não garante crypto.randomUUID. */
+/** UUID v4 with no dependency: Hermes does not guarantee crypto.randomUUID. */
 export function uuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
