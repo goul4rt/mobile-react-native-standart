@@ -72,6 +72,6 @@
   <line x1="32" y1="382" x2="848" y2="382" stroke="#30363D" stroke-width="1"/>
 
   <text x="32" y="410" font-family="ui-monospace, monospace" font-size="11" fill="#E6EDF3">Four modules published as independent remotes:</text>
-  <text x="32" y="432" font-family="ui-monospace, monospace" font-size="11" fill="#A78BFF">./sessao    ./home    ./estatisticas    ./perfil</text>
+  <text x="32" y="432" font-family="ui-monospace, monospace" font-size="11" fill="#A78BFF">./session   ./home   ./stats   ./profile</text>
   <text x="32" y="452" font-family="ui-monospace, monospace" font-size="10" fill="#9198A1">Nothing under modules/ imports from another modules/. Only from shared/.</text>
 </svg>
