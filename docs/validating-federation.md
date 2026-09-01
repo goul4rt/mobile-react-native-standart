@@ -3,6 +3,12 @@
 Four steps, each producing something verifiable in the terminal. The point is
 for the demonstration to be measured, not asserted.
 
+Every path below is relative to `mobile/`, so start there:
+
+```bash
+cd mobile
+```
+
 ## 1. What gets exposed
 
 ```bash
@@ -43,6 +49,9 @@ What the output proves, in order:
 - the immutable URL for that version
 
 ## 3. The manifest
+
+Requires a previous `deploy:*` run — `dist/` only exists after one, and the APK
+build (`apk:release`) does not create it.
 
 ```bash
 python3 -c "

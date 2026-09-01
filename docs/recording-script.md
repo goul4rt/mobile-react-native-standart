@@ -8,7 +8,11 @@ spoken, not read.
 
 ## Before you hit record
 
+All commands run from `mobile/`.
+
 ```bash
+cd mobile
+
 # 1. simulator up, app installed
 npx react-native run-ios --simulator "iPhone 17 Pro"
 
