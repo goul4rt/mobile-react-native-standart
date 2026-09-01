@@ -58,7 +58,7 @@ export function Choice({
   return (
     <Animated.View style={{ transform: [{ scale: revelada ? pulso : escala }] }}>
       <Pressable
-        testID={`alternativa-${alternativa.id}`}
+        testID={`choice-${alternativa.id}`}
         onPress={onPress}
         onPressIn={() => animar(0.98)}
         onPressOut={() => animar(1)}

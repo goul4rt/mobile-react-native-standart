@@ -8,7 +8,7 @@ import { usePreferences } from '../../shared/preferences/PreferencesContext';
 import { t } from '../../shared/i18n';
 import { DOCUMENTOS, abrirDocumento } from '../../shared/documents';
 
-const SENHA_MINIMA = 8;
+const MIN_PASSWORD = 8;
 
 export function SignUp({ onVoltar, onEntrar }: { onVoltar: () => void; onEntrar: () => void }) {
   const { palette, type } = usePreferences();
@@ -22,7 +22,7 @@ export function SignUp({ onVoltar, onEntrar }: { onVoltar: () => void; onEntrar:
   const [submitting, setSubmitting] = useState(false);
 
   // Consent is an act, not a default: the button only enables once it is checked.
-  const canSubmit = consent && email.includes('@') && password.length >= SENHA_MINIMA && !submitting;
+  const canSubmit = consent && email.includes('@') && password.length >= MIN_PASSWORD && !submitting;
 
   const submit = async () => {
     setError(null);
@@ -36,7 +36,11 @@ export function SignUp({ onVoltar, onEntrar }: { onVoltar: () => void; onEntrar:
     }
   };
 
-  const estiloLink = { color: palette.primary, textDecorationLine: 'underline' as const };
+  const estiloLink = {
+    ...type.caption,
+    color: palette.primary,
+    textDecorationLine: 'underline' as const,
+  };
 
   return (
     <Screen keyboardAware edges={['top', 'bottom']}>
@@ -66,7 +70,7 @@ export function SignUp({ onVoltar, onEntrar }: { onVoltar: () => void; onEntrar:
         <Field
           label={t('signUp.password')}
           testID="field-password"
-          placeholder={t('signUp.passwordPlaceholder', { minimo: SENHA_MINIMA })}
+          placeholder={t('signUp.passwordPlaceholder', { min: MIN_PASSWORD })}
           value={password}
           onChangeText={setPassword}
           secret
@@ -74,44 +78,55 @@ export function SignUp({ onVoltar, onEntrar }: { onVoltar: () => void; onEntrar:
         />
       </View>
 
-      <Pressable
-        testID="consent"
-        onPress={() => setConsent((v) => !v)}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: consent }}
-        accessibilityLabel={t('signUp.consent')}
-        style={styles.consent}>
-        <View
-          style={[
-            styles.caixinha,
-            {
-              borderColor: consent ? palette.primary : palette.border,
-              backgroundColor: consent ? palette.primary : 'transparent',
-            },
-          ]}>
-          {consent && <Text style={[type.caption, { color: palette.onPrimary }]}>✓</Text>}
-        </View>
-        {/* The document names open the text; tapping anywhere else checks the box. */}
+      {/*
+        Checkbox e texto são irmãos, e os links são Pressable de verdade numa
+        linha própria. Duas limitações do iOS levaram a isso: envolver tudo num
+        Pressable com role="checkbox" achata a subárvore, e um <Text> com onPress
+        aninhado noutro <Text> nunca vira elemento de acessibilidade — em ambos
+        os casos o VoiceOver anunciava só "checkbox, unchecked" e não havia como
+        abrir os documentos que se estava aceitando.
+      */}
+      <View style={styles.consent}>
+        <Pressable
+          testID="consent"
+          onPress={() => setConsent((v) => !v)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: consent }}
+          accessibilityLabel={t('signUp.consent')}
+          hitSlop={8}>
+          <View
+            style={[
+              styles.caixinha,
+              {
+                borderColor: consent ? palette.primary : palette.border,
+                backgroundColor: consent ? palette.primary : 'transparent',
+              },
+            ]}>
+            {consent && <Text style={[type.caption, { color: palette.onPrimary }]}>✓</Text>}
+          </View>
+        </Pressable>
         <Text style={[type.caption, { color: palette.textSecondary, flex: 1 }]}>
-          {t('signUp.consentBefore')}
-          <Text
-            testID="link-terms"
-            accessibilityRole="link"
-            onPress={() => abrirDocumento(DOCUMENTOS.termos)}
-            style={estiloLink}>
-            {t('documents.terms')}
-          </Text>
-          {t('signUp.consentBetween')}
-          <Text
-            testID="link-privacy"
-            accessibilityRole="link"
-            onPress={() => abrirDocumento(DOCUMENTOS.politica)}
-            style={estiloLink}>
-            {t('documents.privacyPolicy')}
-          </Text>
-          {t('signUp.consentEnd')}
+          {t('signUp.consent')}
         </Text>
-      </Pressable>
+      </View>
+
+      <View style={styles.links}>
+        <Pressable
+          testID="link-terms"
+          accessibilityRole="link"
+          onPress={() => abrirDocumento(DOCUMENTOS.termos)}
+          hitSlop={8}>
+          <Text style={estiloLink}>{t('documents.terms')}</Text>
+        </Pressable>
+        <Text style={[type.caption, { color: palette.textMuted }]}>·</Text>
+        <Pressable
+          testID="link-privacy"
+          accessibilityRole="link"
+          onPress={() => abrirDocumento(DOCUMENTOS.politica)}
+          hitSlop={8}>
+          <Text style={estiloLink}>{t('documents.privacyPolicy')}</Text>
+        </Pressable>
+      </View>
 
       {!!error && (
         <Text style={[type.caption, { color: palette.dangerText, marginTop: space.md }]}>{error}</Text>
@@ -144,6 +159,12 @@ export function SignUp({ onVoltar, onEntrar }: { onVoltar: () => void; onEntrar:
 
 const styles = StyleSheet.create({
   consent: { flexDirection: 'row', gap: space.md, alignItems: 'center', marginTop: space.lg },
+  links: {
+    flexDirection: 'row',
+    gap: space.sm,
+    alignItems: 'center',
+    marginLeft: 24 + space.md,
+  },
   caixinha: {
     width: 24,
     height: 24,

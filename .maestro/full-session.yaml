@@ -15,15 +15,15 @@ appId: org.reactjs.native.example.Gabarita
     commands:
       - scrollUntilVisible:
           element:
-            id: 'alternativa-B'
+            id: 'choice-B'
           direction: DOWN
           timeout: 20000
       - tapOn:
-          id: 'alternativa-B'
+          id: 'choice-B'
       - tapOn:
-          id: 'responder'
+          id: 'answer'
       - tapOn:
-          id: 'proxima'
+          id: 'next'
 
 # Fim: soma de acertos e erros tem que fechar em 10.
 - extendedWaitUntil:
@@ -39,5 +39,5 @@ appId: org.reactjs.native.example.Gabarita
 
 # Voltar pra escolha de área e começar outra.
 - tapOn:
-    id: 'trocar-area'
+    id: 'change-subject'
 - assertVisible: '.*O que você quer estudar hoje.*'

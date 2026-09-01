@@ -13,5 +13,5 @@ tags:
 - assertVisible: '.*Tudo salvo aqui.*'
 # Não pode ser beco sem saída: tem que dar pra tentar de novo sem fechar o app.
 - assertVisible:
-    id: 'tentar-de-novo'
+    id: 'try-again'
 - takeScreenshot: /tmp/sem-api

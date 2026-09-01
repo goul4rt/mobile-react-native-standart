@@ -4,9 +4,9 @@
  */
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
-import { SessaoScreen } from '../src/modules/questoes/SessaoScreen';
+import { SessionScreen } from '../src/modules/questions/SessionScreen';
 import { AuthProvider } from '../src/shared/auth/AuthContext';
-import { PreferenciasProvider } from '../src/shared/ui-kit/PreferenciasContext';
+import { PreferencesProvider } from '../src/shared/preferences/PreferencesContext';
 import type { Question } from '../src/shared/api/client';
 
 jest.mock('react-native-safe-area-context', () => {
@@ -69,13 +69,13 @@ async function render(questions: Question[]) {
 
   let tree!: ReactTestRenderer.ReactTestRenderer;
   await act(async () => {
-    // FimSessao sincroniza o lote pela sessão, então precisa do provider.
+    // SessionSummary sincroniza o lote pela sessão, então precisa do provider.
     tree = ReactTestRenderer.create(
-      <PreferenciasProvider>
+      <PreferencesProvider>
         <AuthProvider>
-          <SessaoScreen area="CH" onSair={() => {}} />
+          <SessionScreen area="CH" onSair={() => {}} />
         </AuthProvider>
-      </PreferenciasProvider>,
+      </PreferencesProvider>,
     );
   });
   montada = tree;
@@ -91,28 +91,28 @@ async function porTestID(tree: ReactTestRenderer.ReactTestRenderer, id: string) 
 
 /** Marca a alternativa e envia: dois passos, como o rodapé exige. */
 async function responder(tree: ReactTestRenderer.ReactTestRenderer, letra: string) {
-  const alternativa = await porTestID(tree, `alternativa-${letra}`);
+  const alternativa = await porTestID(tree, `choice-${letra}`);
   if (!alternativa) throw new Error(`alternativa ${letra} não encontrada`);
   await act(async () => alternativa.props.onPress());
 
-  const enviar = await porTestID(tree, 'responder');
-  if (!enviar) throw new Error('botão Responder não apareceu após marcar');
-  await act(async () => enviar.props.onPress());
+  const submit = await porTestID(tree, 'answer');
+  if (!submit) throw new Error('botão Responder não apareceu após marcar');
+  await act(async () => submit.props.onPress());
 }
 
 /** Toca no botão do rodapé, que só existe depois da resposta. */
 async function avancar(tree: ReactTestRenderer.ReactTestRenderer) {
-  const proxima = await porTestID(tree, 'proxima');
+  const proxima = await porTestID(tree, 'next');
   if (!proxima) throw new Error('botão de avançar não encontrado');
   await act(async () => proxima.props.onPress());
 }
 
-describe('SessaoScreen', () => {
+describe('SessionScreen', () => {
   it('lendo: mostra progresso, meta e alternativas, sem feedback nem rodapé', async () => {
     const tree = await render([question()]);
     const texto = allText(tree);
 
-    expect(await porTestID(tree, 'responder')).toBeUndefined();
+    expect(await porTestID(tree, 'answer')).toBeUndefined();
     expect(texto).toContain('1/1');
     expect(texto).toContain('ENEM 2023');
     expect(texto).toContain('Ciências Humanas');
@@ -124,11 +124,11 @@ describe('SessaoScreen', () => {
   it('marcar não responde: o gabarito só aparece depois de enviar', async () => {
     const tree = await render([question({ explanation: rich('Porque sim.') })]);
 
-    const alternativa = await porTestID(tree, 'alternativa-B');
+    const alternativa = await porTestID(tree, 'choice-B');
     await act(async () => alternativa.props.onPress());
 
     // Marcada: o rodapé aparece, mas nada de gabarito ainda.
-    expect(await porTestID(tree, 'responder')).toBeDefined();
+    expect(await porTestID(tree, 'answer')).toBeDefined();
     const texto = allText(tree);
     expect(texto).toContain('Responder');
     expect(texto).not.toContain('Boa! Essa você domina.');
@@ -138,12 +138,12 @@ describe('SessaoScreen', () => {
   it('dá pra trocar de ideia antes de enviar', async () => {
     const tree = await render([question({ explanation: rich('Porque sim.') })]);
 
-    const errada = await porTestID(tree, 'alternativa-A');
+    const errada = await porTestID(tree, 'choice-A');
     await act(async () => errada.props.onPress());
-    const certa = await porTestID(tree, 'alternativa-B');
+    const certa = await porTestID(tree, 'choice-B');
     await act(async () => certa.props.onPress());
-    const enviar = await porTestID(tree, 'responder');
-    await act(async () => enviar.props.onPress());
+    const submit = await porTestID(tree, 'answer');
+    await act(async () => submit.props.onPress());
 
     // Vale a última marcação, não a primeira.
     expect(allText(tree)).toContain('Boa! Essa você domina.');
@@ -188,7 +188,7 @@ describe('SessaoScreen', () => {
     expect(texto.indexOf('A errada')).toBeLessThan(texto.indexOf('Boa! Essa você domina.'));
   });
 
-  it('fim da sessão: conta acertos e erros do que foi respondido', async () => {
+  it('fim da sessão: conta correct e wrong do que foi respondido', async () => {
     const tree = await render([
       question({ id: '11111111-1111-4111-8111-111111111111' }),
       question({ id: '22222222-2222-4222-8222-222222222222' }),
@@ -212,11 +212,11 @@ describe('SessaoScreen', () => {
     let tree!: ReactTestRenderer.ReactTestRenderer;
     await act(async () => {
       tree = ReactTestRenderer.create(
-        <PreferenciasProvider>
+        <PreferencesProvider>
           <AuthProvider>
-            <SessaoScreen area="CH" onSair={() => {}} />
+            <SessionScreen area="CH" onSair={() => {}} />
           </AuthProvider>
-        </PreferenciasProvider>,
+        </PreferencesProvider>,
       );
     });
     montada = tree;

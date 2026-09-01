@@ -1,112 +1,118 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
-  buscarUsuario,
-  entrar as entrarApi,
-  registrar as registrarApi,
-  renovar,
-  sair as sairApi,
-  type Sessao,
-  type Usuario,
+  fetchUser,
+  signIn as entrarApi,
+  signUp as registrarApi,
+  refreshSession,
+  signOut as sairApi,
+  type Session,
+  type User,
 } from '../api/auth';
 
-const CHAVE = '@gabarita/sessao';
+/**
+ * The key keeps its old name on purpose: it holds the token of everyone already
+ * signed in, and renaming it would sign out the whole installed base in exchange
+ * for nothing the user notices. It only changes if a fallback migration ever
+ * becomes worth it, as done in `preferences/migrate.ts`.
+ */
+const STORAGE_KEY = '@gabarita/session';
 
-/** Renova antes de expirar: token de 15 min, margem de 1. */
-const MARGEM_MS = 60_000;
+/** Renews before expiry: 15-minute token, 1-minute margin. */
+const RENEW_MARGIN_MS = 60_000;
 
-type Estado = {
-  carregando: boolean;
-  usuario: Usuario | null;
-  registrar: (email: string, senha: string, nome?: string) => Promise<void>;
-  entrar: (email: string, senha: string) => Promise<void>;
-  sair: () => Promise<void>;
-  /** Token válido pra chamada autenticada, renovado se preciso. */
+type State = {
+  loading: boolean;
+  user: User | null;
+  signUp: (email: string, password: string, name?: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  /** A valid token for an authenticated call, renewed if needed. */
   token: () => Promise<string | null>;
-  esquecerSessao: () => Promise<void>;
+  forgetSession: () => Promise<void>;
 };
 
-const Contexto = createContext<Estado | null>(null);
+const Context = createContext<State | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [sessao, setSessao] = useState<Sessao | null>(null);
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [carregando, setCarregando] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setCarregando] = useState(true);
 
-  const guardar = useCallback(async (nova: Sessao | null) => {
-    setSessao(nova);
-    if (nova) await AsyncStorage.setItem(CHAVE, JSON.stringify(nova));
-    else await AsyncStorage.removeItem(CHAVE);
+  const store = useCallback(async (nova: Session | null) => {
+    setSession(nova);
+    if (nova) await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nova));
+    else await AsyncStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  // Sessão sobrevive ao fechar o app: ninguém quer logar de novo toda vez.
+  // The session survives closing the app: nobody wants to sign in every time.
   useEffect(() => {
     (async () => {
       try {
-        const bruto = await AsyncStorage.getItem(CHAVE);
-        if (!bruto) return;
-        const salva = JSON.parse(bruto) as Sessao;
-        const renovada = await renovar(salva.refreshToken);
-        await guardar(renovada);
-        setUsuario(await buscarUsuario(renovada.accessToken));
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const salva = JSON.parse(raw) as Session;
+        const renovada = await refreshSession(salva.refreshToken);
+        await store(renovada);
+        setUser(await fetchUser(renovada.accessToken));
       } catch {
-        // Refresh vencido ou revogado: começa deslogado, sem barulho.
-        await AsyncStorage.removeItem(CHAVE);
+        // Refresh expired or revoked: start signed out, quietly.
+        await AsyncStorage.removeItem(STORAGE_KEY);
       } finally {
         setCarregando(false);
       }
     })();
-  }, [guardar]);
+  }, [store]);
 
   const apos = useCallback(
-    async (nova: Sessao) => {
-      await guardar(nova);
-      setUsuario(await buscarUsuario(nova.accessToken));
+    async (nova: Session) => {
+      await store(nova);
+      setUser(await fetchUser(nova.accessToken));
     },
-    [guardar],
+    [store],
   );
 
-  const valor = useMemo<Estado>(
+  const value = useMemo<State>(
     () => ({
-      carregando,
-      usuario,
-      registrar: async (email, senha, nome) => apos(await registrarApi(email, senha, nome)),
-      entrar: async (email, senha) => apos(await entrarApi(email, senha)),
-      sair: async () => {
-        if (sessao) await sairApi(sessao.refreshToken);
-        await guardar(null);
-        setUsuario(null);
+      loading,
+      user,
+      signUp: async (email, password, name) => apos(await registrarApi(email, password, name)),
+      signIn: async (email, password) => apos(await entrarApi(email, password)),
+      signOut: async () => {
+        if (session) await sairApi(session.refreshToken);
+        await store(null);
+        setUser(null);
       },
-      esquecerSessao: async () => {
-        await guardar(null);
-        setUsuario(null);
+      forgetSession: async () => {
+        await store(null);
+        setUser(null);
       },
       token: async () => {
-        if (!sessao) return null;
-        // Prazo do ACCESS, não do refresh: o primeiro vence em minutos.
-        const venceEm = new Date(sessao.accessExpiresAt).getTime();
-        if (Number.isFinite(venceEm) && venceEm - Date.now() > MARGEM_MS) {
-          return sessao.accessToken;
+        if (!session) return null;
+        // The ACCESS deadline, not the refresh one: the former expires in minutes.
+        const venceEm = new Date(session.accessExpiresAt).getTime();
+        if (Number.isFinite(venceEm) && venceEm - Date.now() > RENEW_MARGIN_MS) {
+          return session.accessToken;
         }
         try {
-          const nova = await renovar(sessao.refreshToken);
-          await guardar(nova);
+          const nova = await refreshSession(session.refreshToken);
+          await store(nova);
           return nova.accessToken;
         } catch {
-          await guardar(null);
-          setUsuario(null);
+          await store(null);
+          setUser(null);
           return null;
         }
       },
     }),
-    [apos, carregando, guardar, sessao, usuario],
+    [apos, loading, store, session, user],
   );
 
-  return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
+  return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
-export function useAuth(): Estado {
-  const ctx = useContext(Contexto);
+export function useAuth(): State {
+  const ctx = useContext(Context);
   if (!ctx) throw new Error('useAuth precisa estar dentro de AuthProvider');
   return ctx;
 }

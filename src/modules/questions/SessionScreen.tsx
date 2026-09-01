@@ -191,7 +191,7 @@ export function SessionScreen({ area, onSair }: { area: string; onSair: () => vo
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: palette.bg }} edges={['top', 'bottom']}>
       <View style={styles.topo}>
-        <Pressable hitSlop={12} onPress={onSair} testID="sign-out" style={styles.iconeSair}>
+        <Pressable hitSlop={12} onPress={onSair} testID="close-session" style={styles.iconeSair}>
           <Text style={[type.label, { color: palette.textSecondary }]}>✕</Text>
         </Pressable>
         <View style={[styles.trilho, { backgroundColor: palette.surfaceAlt }]}>
@@ -254,7 +254,7 @@ export function SessionScreen({ area, onSair }: { area: string; onSair: () => vo
                 },
               ]}>
               <Text style={[type.label, { color: acertou ? palette.successText : palette.dangerText }]}>
-                {acertou ? t('session.gotItRight') : t('session.gotItWrong', { letra: correta?.id })}
+                {acertou ? t('session.gotItRight') : t('session.gotItWrong', { letter: correta?.id })}
               </Text>
             </FadeIn>
 

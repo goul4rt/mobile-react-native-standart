@@ -20,58 +20,58 @@ appId: org.reactjs.native.example.Gabarita
     text: 'ENEM \d{4} · Matemática'
 # Antes de marcar, o rodapé não existe.
 - assertNotVisible:
-    id: 'responder'
+    id: 'answer'
 
 # --- estado "marcada": marcar não responde ---
 # As questões são sorteadas: com texto de apoio longo, as alternativas nascem
 # abaixo da dobra. Rolar até elas é o que o aluno faz também.
 - scrollUntilVisible:
     element:
-      id: 'alternativa-A'
+      id: 'choice-A'
     direction: DOWN
     timeout: 20000
 - tapOn:
-    id: 'alternativa-A'
+    id: 'choice-A'
 - assertVisible:
-    id: 'responder'
+    id: 'answer'
 - assertVisible: 'Responder'
 - assertNotVisible: '.*ainda não tem comentário.*'
 
 # --- trocar de ideia antes de enviar ---
 - scrollUntilVisible:
     element:
-      id: 'alternativa-C'
+      id: 'choice-C'
     direction: DOWN
     timeout: 20000
 - tapOn:
-    id: 'alternativa-C'
+    id: 'choice-C'
 - assertVisible:
-    id: 'responder'
+    id: 'answer'
 
 # --- enviar ---
 - tapOn:
-    id: 'responder'
+    id: 'answer'
 - assertVisible:
     text: '(Boa! Essa você domina\.|Quase\. A certa era a [A-E]\.)'
 - assertVisible: '.*ainda não tem comentário.*'
 - assertVisible:
-    id: 'proxima'
+    id: 'next'
 # Respondida: o botão de enviar deu lugar ao de avançar.
 - assertNotVisible:
-    id: 'responder'
+    id: 'answer'
 
 # --- virar de questão ---
 - tapOn:
-    id: 'proxima'
+    id: 'next'
 - extendedWaitUntil:
     visible: '2/10'
     timeout: 10000
 - assertNotVisible:
-    id: 'proxima'
+    id: 'next'
 
 # --- sair volta pra escolha de área ---
 - tapOn:
-    id: 'sair'
+    id: 'close-session'
 - extendedWaitUntil:
     visible: '.*O que você quer estudar hoje.*'
     timeout: 10000

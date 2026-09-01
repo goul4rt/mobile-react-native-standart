@@ -4,30 +4,30 @@ appId: org.reactjs.native.example.Gabarita
 - launchApp:
     clearState: false
 - tapOn:
-    id: 'tab-perfil'
+    id: 'tab-profile'
 - assertVisible: 'Perfil'
 
 # Tema: trocar para claro muda a tela na hora.
 - assertVisible: 'Tema'
 - tapOn:
-    id: 'tema-claro'
+    id: 'theme-light'
 - takeScreenshot: /tmp/perfil-claro
 - tapOn:
-    id: 'tema-escuro'
+    id: 'theme-dark'
 
 # Tamanho da fonte.
 - assertVisible: 'Tamanho da fonte'
 - tapOn:
-    id: 'escala-maior'
+    id: 'scale-xlarge'
 - takeScreenshot: /tmp/perfil-fonte
 
 - tapOn:
-    id: 'escala-normal'
+    id: 'scale-normal'
 
 # Idioma do app: a interface inteira troca para inglês.
 - assertVisible: 'Idioma do app'
 - tapOn:
-    id: 'idioma-app-en'
+    id: 'app-language-en'
 - assertVisible: 'Profile'
 - assertVisible: 'App language'
 - assertVisible: 'Sign out'
@@ -38,13 +38,13 @@ appId: org.reactjs.native.example.Gabarita
     id: 'tab-home'
 - assertVisible: 'STUDY BY SUBJECT'
 - tapOn:
-    id: 'tab-estatisticas'
+    id: 'tab-stats'
 - assertVisible: 'Stats'
 - assertVisible: 'You and others'
 
 # Volta pro português e confirma que persiste.
 - tapOn:
-    id: 'tab-perfil'
+    id: 'tab-profile'
 - tapOn:
-    id: 'idioma-app-pt'
+    id: 'app-language-pt'
 - assertVisible: 'Perfil'

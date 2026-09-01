@@ -125,22 +125,18 @@ export function ProfileScreen() {
 
       <View style={{ gap: space.sm }}>
         <Text style={[type.body, { color: palette.text }]}>{t('documents.title')}</Text>
-        <View
-          style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <SettingsAction
-            testID="open-terms"
-            title={t('documents.terms')}
-            description={t('documents.opensInBrowser')}
-            onPress={() => abrirDocumento(DOCUMENTOS.termos)}
-          />
-          <SettingsDivider />
-          <SettingsAction
-            testID="open-privacy"
-            title={t('documents.privacyPolicy')}
-            description={t('documents.opensInBrowser')}
-            onPress={() => abrirDocumento(DOCUMENTOS.politica)}
-          />
-        </View>
+        <SettingsAction
+          testID="open-terms"
+          title={t('documents.terms')}
+          description={t('documents.opensInBrowser')}
+          onPress={() => abrirDocumento(DOCUMENTOS.termos)}
+        />
+        <SettingsAction
+          testID="open-privacy"
+          title={t('documents.privacyPolicy')}
+          description={t('documents.opensInBrowser')}
+          onPress={() => abrirDocumento(DOCUMENTOS.politica)}
+        />
       </View>
 
       <Button
@@ -155,6 +151,7 @@ export function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  /** Só o cartão do avatar: nome ao lado da inicial. */
   card: {
     flexDirection: 'row',
     alignItems: 'center',
