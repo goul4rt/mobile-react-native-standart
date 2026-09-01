@@ -20,6 +20,18 @@ const mfConfig = {
     './stats': './src/modules/stats/StatsScreen.tsx',
     './profile': './src/modules/account/ProfileScreen.tsx',
   },
+  /**
+   * The app is its own host: it publishes these four remotes and, when
+   * ZEPHYR_REMOTE points at a published version, loads `stats` back from the
+   * edge instead of from its own bundle. That round trip is what makes the
+   * federation observable — swap the URL, restart, and a different version of
+   * the screen renders with no rebuild.
+   *
+   * Empty by default, so a normal build stays fully self-contained.
+   */
+  remotes: process.env.ZEPHYR_REMOTE
+    ? { Questiona: `Questiona@${process.env.ZEPHYR_REMOTE}/mf-manifest.json` }
+    : {},
   shared: {
     react: {
       singleton: true,

@@ -7,7 +7,7 @@ import { Welcome } from './modules/account/Welcome';
 import { SignUp } from './modules/account/SignUp';
 import { Login } from './modules/account/Login';
 import { ProfileScreen } from './modules/account/ProfileScreen';
-import { StatsScreen } from './modules/stats/StatsScreen';
+import { StatsScreen } from './shared/federation/remoteStats';
 import { HomeScreen } from './modules/questions/HomeScreen';
 import { SessionScreen } from './modules/questions/SessionScreen';
 import { useAuth } from './shared/auth/AuthContext';

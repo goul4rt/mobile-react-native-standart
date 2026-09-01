@@ -13,6 +13,7 @@ import {
 } from '../../shared/preferences/PreferencesContext';
 import { border, radius, space } from '../../shared/ui-kit/tokens';
 import { AccountDataScreen } from './AccountDataScreen';
+import { FederationScreen } from './FederationScreen';
 import {
   SettingsAction,
   SettingsDivider,
@@ -25,6 +26,7 @@ export function ProfileScreen() {
   const { palette, type, theme, textScale, examLanguage, appLanguage, set } = usePreferences();
   const { user, signOut } = useAuth();
   const [showingAccount, setShowingAccount] = useState(false);
+  const [showingFederation, setShowingFederation] = useState(false);
 
   /**
    * The sub-screen is state, not a route, so this remote stays self-contained:
@@ -33,15 +35,17 @@ export function ProfileScreen() {
    * the sub-screen, which is what this handler pays back.
    */
   useEffect(() => {
-    if (!showingAccount) return;
+    if (!showingAccount && !showingFederation) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       setShowingAccount(false);
+      setShowingFederation(false);
       return true;
     });
     return () => sub.remove();
-  }, [showingAccount]);
+  }, [showingAccount, showingFederation]);
 
   if (showingAccount) return <AccountDataScreen onBack={() => setShowingAccount(false)} />;
+  if (showingFederation) return <FederationScreen onBack={() => setShowingFederation(false)} />;
 
   return (
     <Screen scroll>
@@ -66,6 +70,12 @@ export function ProfileScreen() {
           testID="account-and-data"
           label={t('profile.accountAndData')}
           onPress={() => setShowingAccount(true)}
+        />
+        <SettingsDivider />
+        <SettingsLink
+          testID="federated-module"
+          label="Federated module"
+          onPress={() => setShowingFederation(true)}
         />
         <SettingsDivider />
 
