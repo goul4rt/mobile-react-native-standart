@@ -1,5 +1,10 @@
 {
   "extends": "@react-native/typescript-config",
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "exclude": ["**/node_modules", "**/Pods"],
+  "compilerOptions": {
+    // O preset do RN não declara "types", e aí os testes que leem arquivo
+    // (i18n.test.ts) perdem node:fs. O app em si não enxerga nada disso.
+    "types": ["node", "jest"]
+  }
 }

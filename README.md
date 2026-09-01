@@ -83,10 +83,10 @@ per environment. This app already publishes four:
 
 | Remote | Domain |
 |---|---|
-| `./sessao` | answering and grading, the core |
+| `./session` | answering and grading, the core |
 | `./home` | entry point, continue where you left off |
-| `./estatisticas` | your accuracy against the population average |
-| `./perfil` | account, preferences, data export and deletion |
+| `./stats` | your accuracy against the population average |
+| `./profile` | account, preferences, data export and deletion |
 
 With one person working on it, that split is discipline rather than savings:
 everything ships together anyway. What makes it pay off is the import rule, not
@@ -139,14 +139,19 @@ those three names:
 
 ```
 src/
-  modules/questoes/       session, results, subject picker, content renderer
-  modules/estatisticas/   charts and the population comparison
-  modules/conta/          onboarding, profile, data export and deletion
-  shared/ui-kit/          design tokens, theme and text scale
+  modules/questions/      session, results, subject picker
+  modules/stats/          charts and the population comparison
+  modules/account/        onboarding, profile, data export and deletion
+  shared/ui-kit/          design tokens and primitives (Screen, Card, Button)
+  shared/rich-text/       question markdown: pure parser + rendering
+  shared/preferences/     theme, text scale, languages + v1.0 migration
   shared/api/             HTTP client
   shared/auth/            session, persisted and refreshed
   shared/i18n/            interface strings, Portuguese and English
 ```
+
+[`CONTEXT.md`](CONTEXT.md) names the domain concepts and lists the values that
+became a contract with installed devices and cannot be renamed freely.
 
 Design tokens (colors, type scale, spacing) come from a design document and
 reach the screens through a single `useTema()` hook, so the theme and text-size
@@ -156,7 +161,7 @@ remembered to wire them.
 ## Tests
 
 ```bash
-npm test              # 13 unit tests
+npm test              # 33 unit tests
 npm run e2e           # 6 Maestro flows on the simulator
 npm run e2e:offline   # the offline flow, with the API stopped
 ```
