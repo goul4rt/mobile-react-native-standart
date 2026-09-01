@@ -44,10 +44,10 @@ Each domain from the design gets its own expose:
 
 | Expose | Module | Why it stands alone |
 |---|---|---|
-| `./sessao` | questions | the core: answering and grading |
+| `./session` | questions | the core: answering and grading |
 | `./home` | questions | entry point |
-| `./estatisticas` | stats | a new metric or chart never touches the session |
-| `./perfil` | account | isolates data-protection and store-policy risk |
+| `./stats` | stats | a new metric or chart never touches the session |
+| `./profile` | account | isolates data-protection and store-policy risk |
 
 The concrete gain is blast radius rather than build time: changing a chart in
 the stats tab publishes a bundle the answering flow never loads. With one person
@@ -162,7 +162,58 @@ The documented way out for CI is `ZE_SECRET_TOKEN`, but obtaining it requires
 authenticating first. Anyone starting from a non-TTY environment has no path
 forward. Printing the URL in non-interactive mode as well would fix it.
 
-### 5. Log noise
+### 5. Module Federation breaks the Metro dev server on RN 0.87
+
+The publishing path works: `bundle-mf-remote` builds, uploads and deploys. What
+does not survive is `react-native start` with the same config, and it fails
+before a single line of app code runs.
+
+With `unstable_patchInitializeCore: true` the app dies on a red screen:
+
+```
+cannot read property 'setGlobalHandler' of undefined
+  at setUpDefaltReactNativeEnvironment
+  at metroRequire
+```
+
+The cause is in `@module-federation/metro/babel-plugin/patch-initialize-core.js`,
+which injects `require('mf:init-host')` immediately after the `'use strict'`
+directive of React Native's InitializeCore. On RN 0.87 that lands **before**
+`setUpDefaltReactNativeEnvironment` creates the global `ErrorUtils`, so the
+federation host runs first and RN never finishes booting.
+
+Turning the flag off does not fix it, it only moves the failure:
+
+```
+[ Federation Runtime ]: Invalid loadShareSync function call — RUNTIME-006
+args: {"hostName":"Questiona","sharedPkgName":"react"}
+```
+
+Now the host is never initialized, so the shared `react` cannot resolve. Both
+positions of the same switch break the dev server, and neither error mentions
+Module Federation as the thing to look at: the first points at React Native's
+own bootstrap, the second at a runtime guide that assumes a web bundler.
+
+Reproduced with a clean cache (`--reset-cache`, `watchman watch-del-all`,
+`dist/` and `node_modules/.cache` removed), so it is not stale state.
+
+The workaround is to apply federation only when publishing:
+
+```js
+// PLATFORM is only set by deploy:ios / deploy:android
+const publishing = Boolean(process.env.PLATFORM)
+if (!publishing) return baseConfig   // dev server runs plain Metro
+```
+
+This costs nothing here because the app does not consume remotes: the four
+exposes exist to be published, not to be loaded back. An app that actually
+loaded remotes in development would have no way out of this.
+
+Suggestion: inject the host require **after** RN's environment setup rather than
+at the top of InitializeCore, and detect the dev server to skip the patch when
+no remote is configured.
+
+### 6. Log noise
 
 Every build repeats the missing `zephyr:dependencies` warning, even in an app
 with no remotes, where its absence is the correct configuration. The command
