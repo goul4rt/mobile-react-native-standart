@@ -288,9 +288,27 @@ The patch is required — it defines the federated `require` — and it runs bef
 the environment it needs. Both positions of the switch fail, which is the same
 shape as §5 one layer down.
 
-There is no application-side workaround, and patching the plugin's injection
-point is not enough either. The federation runtime for Metro assumes it can run
-ahead of React Native's bootstrap, and on RN 0.87 that assumption does not hold.
+Six separate attempts, all ending at the same crash:
+
+| Attempt | Result |
+|---|---|
+| `unstable_patchInitializeCore: true` | `console doesn't exist` |
+| `unstable_patchInitializeCore: false` | `loadShareSync` / no host |
+| Patch the plugin, inject at the *end* of InitializeCore | unchanged |
+| Import `mf:init-host` from `index.js`, after RN loads | unchanged |
+| `unstable_patchRuntimeRequire: false` | `Questiona__r doesn't exist` |
+| Prepend a `console` polyfill to the bundle (`global` and `globalThis`) | unchanged |
+
+The last one is the telling one: even with a console shim as the first statement
+in the bundle, the crash is identical. The federation code does not run after
+the bundle's first line — the `customSerializer` places it ahead of everything,
+including anything the entry file could prepend.
+
+There is no application-side workaround. Patching the plugin's injection point
+does not help either, because the injection point is not the only thing running
+early. The Metro federation runtime assumes it can execute ahead of React
+Native's bootstrap, and on RN 0.87 that assumption does not hold — for consuming
+remotes. Publishing them, which is what this project does, works fine.
 
 **What this means in practice.** A React Native app can publish federated
 remotes with this stack — that part is solid, and this project does it. Loading
