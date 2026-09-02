@@ -273,8 +273,24 @@ root cause as §5, one step earlier in the boot sequence: the patch injects the
 federation host at the top of InitializeCore, ahead of the environment it needs.
 In §5 the missing global was `ErrorUtils`; here it is `console`.
 
-There is no application-side workaround. The injection point is too early by
-construction, and nothing in the app can defer it.
+I then patched the plugin itself — moving the `mf:init-host` injection from the
+top of InitializeCore to the bottom, past React Native's environment setup. The
+crash does not move. So the early code is not only `mf:init-host`; the same
+applies to `unstable_patchRuntimeRequire`, and that flag has no working position
+either:
+
+| `unstable_patchRuntimeRequire` | crash |
+|---|---|
+| `true`  | `Property 'console' doesn't exist` |
+| `false` | `Property 'Questiona__r' doesn't exist` |
+
+The patch is required — it defines the federated `require` — and it runs before
+the environment it needs. Both positions of the switch fail, which is the same
+shape as §5 one layer down.
+
+There is no application-side workaround, and patching the plugin's injection
+point is not enough either. The federation runtime for Metro assumes it can run
+ahead of React Native's bootstrap, and on RN 0.87 that assumption does not hold.
 
 **What this means in practice.** A React Native app can publish federated
 remotes with this stack — that part is solid, and this project does it. Loading
