@@ -145,10 +145,6 @@ export const pt = {
     CN: 'Ciências da Natureza',
     MT: 'Matemática',
   },
-  subjectPicker: {
-    question: 'O que você quer estudar hoje?',
-    subtitle: 'Dá pra mudar quando quiser.',
-  },
 };
 
 export const en: typeof pt = {
@@ -290,9 +286,5 @@ export const en: typeof pt = {
     CH: 'Humanities',
     CN: 'Natural Sciences',
     MT: 'Mathematics',
-  },
-  subjectPicker: {
-    question: 'What do you want to study today?',
-    subtitle: 'You can change this anytime.',
   },
 };

@@ -19,7 +19,7 @@ import { useAuth } from '../../shared/auth/AuthContext';
 import { border, radius, space } from '../../shared/ui-kit/tokens';
 import { BarraAcerto, ComparacaoArea, LinhaEvolucao } from './charts';
 import { usePreferences } from '../../shared/preferences/PreferencesContext';
-import { localeAtual, rotuloArea, t } from '../../shared/i18n';
+import { currentLocale, subjectLabel, t } from '../../shared/i18n';
 import { Centered, Screen } from '../../shared/ui-kit/primitives';
 
 type Tab = 'you' | 'others';
@@ -109,7 +109,7 @@ export function StatsScreen() {
                 {minhas!.byArea.map((a) => (
                   <BarraAcerto
                     key={a.area}
-                    label={rotuloArea(a.area)}
+                    label={subjectLabel(a.area)}
                     correct={a.correct}
                     total={a.total}
                   />
@@ -122,7 +122,7 @@ export function StatsScreen() {
                 pontos={[...minhas!.weekly]
                   .reverse()
                   .map((s) => ({
-                    label: new Date(s.week).toLocaleDateString(localeAtual(), {
+                    label: new Date(s.week).toLocaleDateString(currentLocale(), {
                       day: '2-digit',
                       month: '2-digit',
                     }),
@@ -150,7 +150,7 @@ export function StatsScreen() {
                     key={minha.area}
                     style={[styles.vazio, { borderColor: palette.border, marginBottom: space.lg }]}>
                     <Text style={[type.heading, { color: palette.text, marginBottom: space.xs }]}>
-                      {rotuloArea(minha.area)}
+                      {subjectLabel(minha.area)}
                     </Text>
                     <Text style={[type.caption, { color: palette.textSecondary }]}>
                       {t('stats.noSampleSubject')}
@@ -161,7 +161,7 @@ export function StatsScreen() {
               return (
                 <View key={minha.area} style={{ marginBottom: space.xl }}>
                   <ComparacaoArea
-                    label={rotuloArea(minha.area)}
+                    label={subjectLabel(minha.area)}
                     voce={minha.total > 0 ? minha.correct / minha.total : null}
                     media={geral.accuracy}
                     usuarios={geral.users}

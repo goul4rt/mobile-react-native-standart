@@ -23,7 +23,7 @@ import { Choice, type EstadoChoice } from './Choice';
 import { SessionSummary } from './SessionSummary';
 import { usePreferences } from '../../shared/preferences/PreferencesContext';
 import { RichText } from '../../shared/rich-text/RichText';
-import { rotuloArea, t } from '../../shared/i18n';
+import { subjectLabel, t } from '../../shared/i18n';
 import { Button } from '../../shared/ui-kit/primitives';
 
 const TAMANHO = 10;
@@ -176,7 +176,7 @@ export function SessionScreen({ area, onSair }: { area: string; onSair: () => vo
   const acertou = respondida && escolha === correta?.id;
   const meta = [
     question.metadata.year ? `ENEM ${question.metadata.year}` : null,
-    question.metadata.area ? rotuloArea(question.metadata.area) : null,
+    question.metadata.area ? subjectLabel(question.metadata.area) : null,
   ]
     .filter(Boolean)
     .join(' · ');

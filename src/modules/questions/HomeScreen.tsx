@@ -19,7 +19,7 @@ import {
 import { useAuth } from '../../shared/auth/AuthContext';
 import { border, radius, space } from '../../shared/ui-kit/tokens';
 import { usePreferences } from '../../shared/preferences/PreferencesContext';
-import { rotuloArea, t } from '../../shared/i18n';
+import { subjectLabel, t } from '../../shared/i18n';
 import { Button, Centered } from '../../shared/ui-kit/primitives';
 
 export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
@@ -106,7 +106,7 @@ export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
               {t('home.continue')}
             </Text>
             <Text style={[type.heading, { color: palette.onPrimary, marginTop: space.xs }]}>
-              {rotuloArea(continuar[0])}
+              {subjectLabel(continuar[0])}
             </Text>
             <Text style={[type.caption, { color: palette.onPrimary, opacity: 0.85 }]}>
               {t('home.answered', {
@@ -134,7 +134,7 @@ export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
                 ]}>
                 <View style={{ flex: 1 }}>
                   <Text style={[type.heading, { color: palette.text }]}>
-                    {rotuloArea(area.code)}
+                    {subjectLabel(area.code)}
                   </Text>
                   <Text style={[type.caption, { color: palette.textMuted }]}>
                     {meu
