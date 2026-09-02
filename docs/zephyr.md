@@ -298,9 +298,23 @@ Six separate attempts, all ending at the same crash:
 | Import `mf:init-host` from `index.js`, after RN loads | unchanged |
 | `unstable_patchRuntimeRequire: false` | `Questiona__r doesn't exist` |
 | Prepend a `console` polyfill to the bundle (`global` and `globalThis`) | unchanged |
+| Patch `host-entry.js` to `import 'react-native'` before `mf:init-host` | unchanged |
 
-The last one is the telling one: even with a console shim as the first statement
-in the bundle, the crash is identical. The federation code does not run after
+The generated host entry shows why. `bundle-mf-host` replaces the entry file
+with:
+
+```js
+import 'mf:init-host';
+import 'mf:async-require';
+__ENTRYPOINT_IMPORT__;   // the real index.js
+```
+
+Federation initializes **before `react-native` is ever imported** — so before
+InitializeCore, before `console`. Reordering those imports does not help either:
+Metro resolves by dependency graph, not by the order lines appear in a file.
+
+And even with a console shim as the first statement in the bundle, the crash is
+identical. The federation code does not run after
 the bundle's first line — the `customSerializer` places it ahead of everything,
 including anything the entry file could prepend.
 
