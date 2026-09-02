@@ -213,12 +213,16 @@ Suggestion: inject the host require **after** RN's environment setup rather than
 at the top of InitializeCore, and detect the dev server to skip the patch when
 no remote is configured.
 
-### 6. Consuming remotes on React Native: how far I got, and where it stops
+### 6. Consuming remotes: the documented path is closed on RN 0.87
 
-Publishing the four exposes works. Loading one back into the running app does
-not, and the failures come in a chain where each one only surfaces after the
-previous is fixed. Every step below was reproduced on RN 0.87 with
+Publishing the four exposes works. Loading one back through `bundle-mf-host`
+does not, and the failures come in a chain where each one only surfaces after
+the previous is fixed. Every step below was reproduced on RN 0.87 with
 `@module-federation/metro@2.9.0`.
+
+The app does consume a published remote today -- the stats tab renders code
+fetched from the Zephyr edge. It gets there by not using the host runtime at
+all; the workaround is at the end of this section.
 
 **1. The build dies inside `node_modules`.**
 
@@ -318,18 +322,84 @@ identical. The federation code does not run after
 the bundle's first line — the `customSerializer` places it ahead of everything,
 including anything the entry file could prepend.
 
-There is no application-side workaround. Patching the plugin's injection point
-does not help either, because the injection point is not the only thing running
-early. The Metro federation runtime assumes it can execute ahead of React
-Native's bootstrap, and on RN 0.87 that assumption does not hold — for consuming
-remotes. Publishing them, which is what this project does, works fine.
+The documented path has no application-side workaround. Patching the plugin's
+injection point does not help either, because the injection point is not the
+only thing running early. The Metro federation runtime assumes it can execute
+ahead of React Native's bootstrap, and on RN 0.87 that assumption does not hold.
 
-**What this means in practice.** A React Native app can publish federated
-remotes with this stack — that part is solid, and this project does it. Loading
-them back requires clearing six undocumented obstacles, and the sixth has no
-workaround I could find. The failure messages point at React Native internals,
-at a Node.js entry loader, or at a virtual module system, never at the actual
-cause.
+**What does work: skip the host runtime.**
+
+The blocker is the *host* half of the plugin -- the generated entry, the early
+`mf:init-host`, the patched `require`. The *published* half is fine: what Zephyr
+serves is a self-contained Metro bundle that declares its own
+`__METRO_GLOBAL_PREFIX__` (so it cannot collide with the host's module registry)
+and, on evaluation, registers `{ get, init }` at
+`globalThis.__FEDERATION__.__NATIVE__[name].exports`.
+
+That is the whole contract. Fetching the file and evaluating it does what the
+runtime would have done, at a moment when React Native is already up:
+
+```ts
+const code = await fetch(`${url}/Questiona.bundle`).then((r) => r.text());
+new Function(code)();                                    // registers the remote
+const exports = globalThis.__FEDERATION__.__NATIVE__.Questiona.exports;
+await exports.init(sharedScope());                       // lends react, react-native, ...
+const { StatsScreen } = (await exports.get('./stats'))();
+```
+
+`src/shared/federation/loadRemoteBundle.ts` is that, plus the three details the
+bundle turned out to need. Each was found by reading the error it produced:
+
+| Error | Cause | Fix |
+|---|---|---|
+| `Invalid loadShareSync function call #RUNTIME-006` | the share scope descriptor only had the async `get` | add `lib: () => mod`, the synchronous path |
+| the same error naming `react-native/Libraries/Network/RCTNetworking` | the bundle's `__EARLY_SHARED__` lists more than the config does | lend every entry it names |
+| `the global "location" variable is not defined` | Metro's chunk loader reads a browser API | a nine-field `location` stub pointing at the deploy URL |
+
+**Shared modules decide whether the screen renders.** Anything holding a React
+context has to be the *same module object* on both sides, or the host's Provider
+is invisible to the remote's hook and the screen throws `must be used inside
+Provider`. Two different fixes, because the plugin matches `shared` keys against
+the **literal import string**:
+
+- Packages have a stable literal (`'@react-navigation/native'`), so they go in
+  `shared` in `metro.config.js` and are lent back in `sharedScope()`.
+- Our own contexts are imported by relative path, which changes with each file's
+  depth, so no single key matches. `src/shared/federation/sharedContext.ts`
+  keys them on a global instead: whichever copy loads first creates the Context
+  object, the rest reuse it.
+
+**The version you offer must be a version, not a range.** The manifest publishes
+the raw `package.json` entry (`^7.3.18`), so it is tempting to hand the runtime
+the same string back. Do not: it checks the offer against the remote's
+`requiredVersion` with semver, and comparing a range to a range makes it reject
+its own match --
+
+```
+Version ^7.3.18 from QuestionaHost of shared singleton module
+@react-navigation/native does not satisfy the requirement of Questiona
+which needs ^7.3.18
+```
+
+That line is a **log message, not an error**. The remote falls back to its own
+copy and the screen still renders, so nothing looks wrong. What broke was the
+tab bar: navigation inside the remote screen no longer reached the host's
+navigator, and tapping Home did nothing while tapping Profile worked. Strip the
+range prefix and it is a singleton again.
+
+**A remote is always a production build.** `bundle-mf-remote` runs with
+`--dev false`, so `__DEV__` is false *inside the remote* even when the app
+loading it is a debug build. Anything branching on `__DEV__` -- an API base URL,
+most obviously -- decides differently on each side of the boundary. Here the
+remote stats screen queried the production API while the rest of the app talked
+to localhost, and the symptom was an empty screen: the fetch 401'd into a
+`.catch(() => null)`. `API_URL` goes through the same global registry as the
+contexts for that reason.
+
+**Proof it is really remote.** Add a marker to `StatsScreen.tsx`, run
+`npm run deploy:ios`, revert the file, point `remoteUrl.ts` at the new
+deployment, reload. The marker shows up on a screen whose source no longer
+contains it. No rebuild, no reinstall.
 
 **Suggestions**, in order of value:
 
@@ -341,6 +411,22 @@ cause.
    federation host starts before `console` and `ErrorUtils` exist.
 4. Make `Expected virtual module setup to be finished` say what setup is missing
    and which command performs it.
+5. Document the published bundle's contract -- `__FEDERATION__.__NATIVE__[name]`
+   with `{ get, init }`, and the share scope shape `init` expects. It is a small
+   and stable surface, and it is what made consumption possible here while the
+   official host path was blocked.
+6. Make the version mismatch an error, or at least say which side to fix. Today
+   `Version ^7.3.18 ... does not satisfy the requirement ... which needs ^7.3.18`
+   is logged at info level, reads like a tautology, and the consequence -- the
+   remote silently using its own copy of a singleton -- surfaces much later as a
+   dead tab bar.
+7. Warn in the docs that a remote is bundled with `--dev false` regardless of the
+   host. Every `__DEV__` branch means the two halves disagree, and the failure is
+   usually silent.
+8. Say in the docs that a `shared` key is matched against the literal import
+   string, not a resolved module. Sharing anything that is not a bare package
+   name silently does nothing, and the symptom appears much later as a missing
+   React context.
 
 ### 7. Log noise
 

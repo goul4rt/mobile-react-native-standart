@@ -88,6 +88,13 @@ per environment. This app already publishes four:
 | `./stats` | your accuracy against the population average |
 | `./profile` | account, preferences, data export and deletion |
 
+And it consumes one: the stats tab renders `./stats` fetched from the edge, with
+a banner naming where the screen came from. Change the screen, deploy, revert the
+file, reload — the change is there, with no rebuild. Getting that working meant
+going around the plugin's host runtime, which does not survive React Native
+0.87's boot order; the workaround and the six failures behind it are in
+[docs/zephyr.md](docs/zephyr.md) §6.
+
 With one person working on it, that split is discipline rather than savings:
 everything ships together anyway. What makes it pay off is the import rule, not
 the deploy mechanics. Nothing under `modules/` imports from another `modules/`,

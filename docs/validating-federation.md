@@ -1,7 +1,9 @@
 # Validating (and demonstrating) the Module Federation setup
 
-Four steps, each producing something verifiable in the terminal. The point is
-for the demonstration to be measured, not asserted.
+Five steps, each producing something verifiable. The first four run in the
+terminal; the fifth runs on the simulator and is the one that proves the app
+actually consumes what it publishes. The point is for the demonstration to be
+measured, not asserted.
 
 Every path below is relative to `mobile/`, so start there:
 
@@ -96,13 +98,59 @@ diff /tmp/h1.txt /tmp/h2.txt    # differs, without touching the source
 The isolation is real, but it is Zephyr that delivers it on upload, not the
 bundler on output.
 
-## The honest limit
+## 5. The consumption, on the simulator
 
-This app **exposes** remotes, it does not **consume** them. The core promise of
-Module Federation — swapping a remote's version without rebuilding the host — is
-not demonstrable here, because no host loads `./stats` at a pinned version. What
-exists is the separation that makes it possible: four independently publishable
-artifacts and the import discipline that keeps them separable.
+Steps 1 to 4 prove the artifacts are published and isolated. They do not prove
+the app loads one back — for that, the screen has to change without a rebuild.
 
-Stating that limit is worth more than pretending the running app demonstrates
-federation. It runs identically with or without it.
+The stats tab renders `./stats` from the edge. `src/shared/federation/` holds the
+three pieces:
+
+| File | Role |
+|---|---|
+| `remoteUrl.ts` | which published version to load; empty means "use the local screen" |
+| `loadRemoteBundle.ts` | fetches the bundle, evaluates it, lends the shared modules |
+| `RemoteStats.tsx` | renders remote or local, with a banner naming the origin |
+
+Open the Stats tab. The banner reads one of two things, and both are correct
+outcomes:
+
+```
+● ./stats loaded from Zephyr edge     the remote answered
+○ ./stats from this bundle            it did not, and the reason is printed next to it
+```
+
+To prove the first banner is not a label on local code, make the published
+version differ from the local one:
+
+```bash
+# 1. mark the screen
+sed -i '' "s#{t('stats.title')}#{t('stats.title')} · edge v2#" src/modules/stats/StatsScreen.tsx
+
+# 2. publish it
+npm run deploy:ios
+
+# 3. take the marker back out of the local source
+git checkout src/modules/stats/StatsScreen.tsx
+grep -c "edge v2" src/modules/stats/StatsScreen.tsx    # 0 — it is gone locally
+
+# 4. point at the deployment the command just printed
+#    src/shared/federation/remoteUrl.ts
+
+# 5. reload the app (no rebuild, no reinstall)
+```
+
+The title reads **Stats · edge v2** — text that no longer exists on the machine
+running it. That is the swap Module Federation promises, and step 3 is what makes
+it unambiguous: without the revert, the dev server would be serving the same new
+text from the local file.
+
+## The path this does not take
+
+The documented way to consume — `bundle-mf-host` — does not work on React Native
+0.87: federation initialises before React Native creates `console`, and the app
+dies at launch. Six attempts, one crash, written up in
+[zephyr.md](zephyr.md) §6 along with the workaround used here.
+
+Worth knowing before reading `loadRemoteBundle.ts` and wondering why it does not
+call `loadRemote` from the runtime.

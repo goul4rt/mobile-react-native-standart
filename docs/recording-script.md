@@ -1,30 +1,42 @@
 # Recording script
 
-Target: 3 to 4 minutes. The task asks for two things on camera — **the
+Target: 4 to 5 minutes. The task asks for two things on camera — **the
 deployment flow** and **the app running** — so both need to appear in full.
+Scene 6 is the extra one worth the time: it shows a remote being consumed, which
+is the part that turns "files were published" into "federation works".
 
 Lines in blockquotes are meant to be said out loud. They are written to be
 spoken, not read.
 
 ## Before you hit record
 
-All commands run from `mobile/`.
+Start at the repository root; everything after the `cd` runs from `mobile/`.
 
 ```bash
+# 1. the API, from the repository root
+docker compose up -d
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/v1/taxonomy   # want 200
+
 cd mobile
 
-# 1. simulator up, app installed
+# 2. simulator up, app installed
 npx react-native run-ios --simulator "iPhone 17 Pro"
 
-# 2. Metro in a second tab (stays off camera)
+# 3. Metro in a second tab (stays off camera)
 npm start
 
-# 3. authenticate once, so Zephyr does not ask mid-take
+# 4. authenticate once, so Zephyr does not ask mid-take
 npm run deploy:ios
 ```
 
-That third one matters. If Zephyr prompts for login during the recording, you
-lose the main shot.
+The last one matters. If Zephyr prompts for login during the recording, you lose
+the deploy shot.
+
+**If that `curl` returns 404**, something else owns port 3000 and the app will
+sit on empty screens for the whole take. Free the port, or move both ends:
+`API_PORT=3010 docker compose up -d` and `DEV_PORT` in
+`src/shared/api/client.ts`. Check the curl again before recording — a debug
+build points at localhost, and there is no fallback to the public API.
 
 Have ready to switch between:
 
@@ -67,7 +79,7 @@ Show, in this order:
 > version counter, writes the bundle and exits zero. That one cost me hours, and
 > it is the first item in my feedback notes."
 
-## Scene 3 — The deploy (60s) — **the main shot**
+## Scene 3 — The deploy (60s)
 
 Terminal:
 
@@ -122,23 +134,65 @@ Simulator. Take the short, real path:
 
 No rush here. This is the proof that the published bundle works.
 
-## Scene 6 — The honest limit (30s)
+## Scene 6 — Consuming a remote (75s) — **the money shot**
 
-> "One caveat worth stating. This app publishes four remotes, but it does not
-> consume any — and I did try. Loading a remote back into a React Native app
-> means clearing six undocumented obstacles: the runtime ships Webpack-only
-> syntax that Metro rejects, `process.env` does not survive bundling, nobody
-> creates the federation instance, and there are two bundling commands where the
-> docs mention neither. I got the host bundle building correctly with
-> `bundle-mf-host`, and it still fails from Xcode's build phase with 'Expected
-> virtual module setup to be finished'. That is written up in docs/zephyr.md,
-> section six, with each step reproduced."
+This is the one that shows federation doing something, rather than just
+producing files. It is a live swap: change the published screen, and the running
+app picks it up with no rebuild and no reinstall.
 
-> "So what is ready here is the separation: four independently publishable
-> artifacts, and the import rule that keeps them separable. Nothing under
-> `modules/` imports from another `modules/`."
+Open the Stats tab first and let the banner read on camera:
 
-End there. Saying where it stops is worth more than pretending it does not.
+```
+● ./stats loaded from Zephyr edge
+```
+
+> "That banner is not decoration. This screen was fetched from Zephyr's edge a
+> second ago — it is not in the app's own bundle. Let me prove it."
+
+On camera, edit `src/modules/stats/StatsScreen.tsx` and add a marker to the
+title:
+
+```tsx
+{t('stats.title')} · edge v2
+```
+
+Deploy, then **revert the file**:
+
+```bash
+npm run deploy:ios
+git checkout src/modules/stats/StatsScreen.tsx
+```
+
+Show the revert. Show that the local source no longer contains `edge v2`. Then
+paste the new URL into `src/shared/federation/remoteUrl.ts` and reload the app.
+
+> "The local file is back to what it was. The app was not rebuilt. And the
+> screen now says 'edge v2' — text that exists nowhere on this machine. It came
+> from the edge."
+
+Show the title: **Stats · edge v2**.
+
+> "That is the whole point of the pattern. Four teams, four exposes, each one
+> shipping to production without touching the app binary."
+
+## Scene 7 — The honest limit (30s)
+
+> "One caveat, because it cost me a day. The documented way to consume a remote
+> is `bundle-mf-host`, and on React Native 0.87 it does not work: federation
+> initialises before React Native creates `console`, and the app dies at launch
+> on `Property 'console' doesn't exist`. Six different attempts, same crash."
+
+> "What you just saw goes around it. The bundle Zephyr publishes is
+> self-contained — it registers `{ get, init }` on a global — so the app fetches
+> it and evaluates it directly, after React Native is already up. About eighty
+> lines, in `src/shared/federation/loadRemoteBundle.ts`. Publishing was never the
+> problem; the host runtime was."
+
+> "All of it is written up in `docs/zephyr.md`, section six, each step
+> reproduced with the error it produced."
+
+End there. Saying what was in the way is worth more than pretending the path was
+clear.
 
 ---
 
@@ -152,6 +206,9 @@ End there. Saying where it stops is worth more than pretending it does not.
   whether or not the remotes exist. What demonstrates it is scene 6, where the
   version being loaded changes without a rebuild. Keep the claim attached to the
   right scene.
+- **Do not skip the revert in scene 6.** Deploying and reloading proves nothing
+  on its own: the dev server would serve the same new text from the local file.
+  The revert is what makes the marker unambiguous.
 - **Do not cut a failure.** A deploy that fails and gets fixed on camera is
   worth more than a flawless take.
 
@@ -163,3 +220,8 @@ token lives in `~/.zephyr` after the first successful run.
 Red screen on the simulator: the dev server runs plain Metro on purpose —
 federation is applied only when publishing, see `docs/zephyr.md` §5. A Module
 Federation error there means `metro.config.js` was changed.
+
+Banner reads `○ ./stats from this bundle` in scene 6: the fetch failed and the
+app fell back to its own screen, which is the intended behaviour but not the
+shot you want. The reason is printed next to the banner. Most likely
+`remoteUrl.ts` still points at the previous deployment.
