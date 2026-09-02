@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { sharedContext } from '../federation/sharedContext';
 import { useColorScheme } from 'react-native';
-import { i18n, idiomaDoSistema } from '../i18n';
+import { i18n, systemLanguage } from '../i18n';
 import { palettes, type as baseType, type Palette } from '../ui-kit/tokens';
 import {
   LEGACY_STORAGE_KEY,
@@ -23,7 +24,7 @@ const DEFAULTS: Preferences = {
   theme: 'system',
   textScale: 'normal',
   examLanguage: 'en',
-  appLanguage: idiomaDoSistema(),
+  appLanguage: systemLanguage(),
 };
 
 type State = Preferences & {
@@ -34,7 +35,7 @@ type State = Preferences & {
   type: typeof baseType;
 };
 
-const Context = createContext<State | null>(null);
+const Context = sharedContext<State | null>('preferences', null);
 
 export function PreferencesProvider({ children }: { children: React.ReactNode }) {
   const systemIsDark = useColorScheme() === 'dark';

@@ -47,6 +47,30 @@ const mfConfig = {
       version: pkg.dependencies['react-native'],
       import: false,
     },
+    /*
+     * Anything holding a React context must be the same module on both sides,
+     * or the remote gets its own copy and the host's Provider becomes invisible
+     * to it. Navigation is the one the stats screen reaches for, through
+     * useFocusEffect; safe-area is the one every screen frame goes through.
+     *
+     * The plugin matches these keys against the literal import string, which is
+     * why only packages can be listed here. Our own contexts solve it another
+     * way -- see src/shared/federation/sharedContext.ts.
+     */
+    '@react-navigation/native': {
+      singleton: true,
+      eager: false,
+      requiredVersion: pkg.dependencies['@react-navigation/native'],
+      version: pkg.dependencies['@react-navigation/native'],
+      import: false,
+    },
+    'react-native-safe-area-context': {
+      singleton: true,
+      eager: false,
+      requiredVersion: pkg.dependencies['react-native-safe-area-context'],
+      version: pkg.dependencies['react-native-safe-area-context'],
+      import: false,
+    },
   },
   shareStrategy: 'version-first',
 };

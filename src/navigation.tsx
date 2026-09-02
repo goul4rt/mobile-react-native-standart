@@ -7,7 +7,7 @@ import { Welcome } from './modules/account/Welcome';
 import { SignUp } from './modules/account/SignUp';
 import { Login } from './modules/account/Login';
 import { ProfileScreen } from './modules/account/ProfileScreen';
-import { StatsScreen } from './modules/stats/StatsScreen';
+import { RemoteStats } from './shared/federation/RemoteStats';
 import { HomeScreen } from './modules/questions/HomeScreen';
 import { SessionScreen } from './modules/questions/SessionScreen';
 import { useAuth } from './shared/auth/AuthContext';
@@ -69,7 +69,7 @@ function Core() {
       </Tabs.Screen>
       <Tabs.Screen
         name="Estatisticas"
-        component={StatsScreen}
+        component={RemoteStats}
         options={{
           tabBarLabel: t('stats.title'),
           tabBarIcon: ({ color }) => <Icon simbolo="◈" color={color} />,

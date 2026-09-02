@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { sharedSingleton } from '../federation/sharedContext';
 
 /**
  * The Android emulator cannot see the machine's `localhost`: 10.0.2.2 is the
@@ -7,13 +8,26 @@ import { Platform } from 'react-native';
 const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
 /**
+ * Has to match `API_PORT` in the root docker-compose.yml, which also defaults to
+ * 3000. Change both when something else already owns the port -- the app cannot
+ * read an env var at runtime, so this is the one place that knows.
+ */
+const DEV_PORT = 3000;
+
+/**
  * The production bundle must point at the public API: `deploy:ios` runs with
  * `--dev false`, and a published bundle pointing at localhost reaches nothing
  * on the device of whoever installed it.
+ *
+ * Shared through the global registry because a federated remote is ALWAYS built
+ * with `--dev false` -- `__DEV__` is false inside it even when the app hosting
+ * it is a debug build. Left to decide on its own, a remote screen would query
+ * production while everything around it talks to the API on this machine, and
+ * the mismatch shows up as an empty screen rather than an error.
  */
-export const API_URL = __DEV__
-  ? `http://${HOST}:3000`
-  : 'https://questiona.dublapedia.com';
+export const API_URL = sharedSingleton('apiUrl', () =>
+  __DEV__ ? `http://${HOST}:${DEV_PORT}` : 'https://questiona.dublapedia.com',
+);
 
 export type Media = { id: string; url: string; alt?: string };
 export type RichContent = { format: 'markdown' | 'html'; body: string; media: Media[] };

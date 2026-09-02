@@ -1,11 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { sharedContext } from '../federation/sharedContext';
 import {
   fetchUser,
   signIn as entrarApi,
   signUp as registrarApi,
   refreshSession,
   signOut as sairApi,
+  type ApiError,
   type Session,
   type User,
 } from '../api/auth';
@@ -17,6 +19,17 @@ import {
  * becomes worth it, as done in `preferences/migrate.ts`.
  */
 const STORAGE_KEY = '@gabarita/session';
+
+/**
+ * Whether a failed refresh means the credential is dead, or just that the
+ * network is. Only the server rejecting the token justifies erasing it: a 429
+ * from the rate limiter, a 500, or no connection at all are transient, and
+ * signing out on those loses the session of someone who only had bad signal.
+ */
+function credentialRejected(error: unknown): boolean {
+  const status = (error as ApiError)?.status;
+  return status === 401 || status === 403;
+}
 
 /** Renews before expiry: 15-minute token, 1-minute margin. */
 const RENEW_MARGIN_MS = 60_000;
@@ -32,7 +45,7 @@ type State = {
   forgetSession: () => Promise<void>;
 };
 
-const Context = createContext<State | null>(null);
+const Context = sharedContext<State | null>('auth', null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -55,9 +68,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const renovada = await refreshSession(salva.refreshToken);
         await store(renovada);
         setUser(await fetchUser(renovada.accessToken));
-      } catch {
-        // Refresh expired or revoked: start signed out, quietly.
-        await AsyncStorage.removeItem(STORAGE_KEY);
+      } catch (error) {
+        // Refresh expired or revoked: start signed out, quietly. Anything else
+        // keeps the session on disk for the next launch to retry.
+        if (credentialRejected(error)) await AsyncStorage.removeItem(STORAGE_KEY);
       } finally {
         setCarregando(false);
       }
@@ -95,12 +109,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return session.accessToken;
         }
         try {
-          const nova = await refreshSession(session.refreshToken);
-          await store(nova);
-          return nova.accessToken;
-        } catch {
-          await store(null);
-          setUser(null);
+          const renewed = await refreshSession(session.refreshToken);
+          await store(renewed);
+          return renewed.accessToken;
+        } catch (error) {
+          if (credentialRejected(error)) {
+            await store(null);
+            setUser(null);
+          }
           return null;
         }
       },
