@@ -252,14 +252,29 @@ never lands. Running `bundle-mf-host` by hand does produce a correct bundle:
 **5. `run-ios` does not forward env vars to Xcode.** `BUNDLE_COMMAND` has to go
 through `ios/.xcode.env.local`, which is not versioned.
 
-**6. And there it stops.** With the Xcode build phase calling `bundle-mf-host`:
+**6. And there it stops, for the same reason as §5.** Two ways in, both closed.
+
+From Xcode's build phase, `bundle-mf-host` fails with `Expected virtual module
+setup to be finished`, whether invoked raw or through the plugin's own
+`loadMetroConfig`.
+
+Running the command standalone does produce a correct bundle, so I dropped it
+into the built `.app` by hand — which is the same thing Zephyr does in
+production, swapping the JS of an already-compiled binary. The app crashes on
+launch, and the crash log names the cause:
 
 ```
-Expected virtual module setup to be finished
+ReferenceError: Property 'console' doesn't exist
+  at installConsoleErrorReporter
 ```
 
-The command works standalone but not from Xcode's build phase, whether invoked
-raw or through the plugin's own `loadMetroConfig`. That is where I stopped.
+`mf:init-host` runs **before React Native creates `console`**. That is the same
+root cause as §5, one step earlier in the boot sequence: the patch injects the
+federation host at the top of InitializeCore, ahead of the environment it needs.
+In §5 the missing global was `ErrorUtils`; here it is `console`.
+
+There is no application-side workaround. The injection point is too early by
+construction, and nothing in the app can defer it.
 
 **What this means in practice.** A React Native app can publish federated
 remotes with this stack — that part is solid, and this project does it. Loading
@@ -273,7 +288,10 @@ cause.
 1. Document `bundle-mf-host` on the Metro page. It is the single missing piece
    most people will hit, and it only appears in a CLI help message.
 2. Ship the runtime without Webpack-only syntax, or a React Native build of it.
-3. Make `Expected virtual module setup to be finished` say what setup is missing
+3. Inject `mf:init-host` **after** React Native's environment setup, not at the
+   top of InitializeCore. The same ordering bug closes both §5 and §6: the
+   federation host starts before `console` and `ErrorUtils` exist.
+4. Make `Expected virtual module setup to be finished` say what setup is missing
    and which command performs it.
 
 ### 7. Log noise
