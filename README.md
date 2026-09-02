@@ -16,11 +16,21 @@ would.
 </p>
 
 <p align="center">
-  <img src="docs/media/home.png" alt="Home screen" width="196">
-  <img src="docs/media/sessao.png" alt="An answered question with the correct option highlighted in green" width="196">
-  <img src="docs/media/stats.png" alt="Accuracy by subject" width="196">
-  <img src="docs/media/perfil.png" alt="Profile with theme, text size and language settings" width="196">
+  <img src="docs/media/home.png" alt="Home screen listing the four subjects" width="196">
+  <img src="docs/media/session.png" alt="An answered question with the correct option highlighted in green" width="196">
+  <img src="docs/media/stats.png" alt="Accuracy by subject, under a banner reading: ./stats loaded from Zephyr edge" width="196">
+  <img src="docs/media/profile.png" alt="Profile with theme, text size and language settings" width="196">
 </p>
+
+## Where to start
+
+| Looking for | It is here |
+|---|---|
+| How Zephyr fits the RN build pipeline | [Where Zephyr sits](#where-zephyr-sits), below |
+| How I would use it on a real project | [that section](#how-i-would-use-it-on-a-real-project) |
+| Developer experience and docs feedback | [`docs/zephyr.md`](docs/zephyr.md) — seven rough edges, each with the evidence, and eight suggestions |
+| Proof the deploy works | [`docs/validating-federation.md`](docs/validating-federation.md) — five checks you can run yourself |
+| The app consuming a published remote | [`src/shared/federation/`](src/shared/federation/), and §6 of the write-up |
 
 ## Where Zephyr sits
 
@@ -181,7 +191,7 @@ before the answers finished syncing.
 
 ## Notes on the integration
 
-[`docs/zephyr.md`](docs/zephyr.md) has the full write-up: what worked, five
+[`docs/zephyr.md`](docs/zephyr.md) has the full write-up: what worked, seven
 rough edges with the evidence behind each, and the suggestions I would send to
 the Zephyr team.
 
