@@ -1,4 +1,5 @@
 import { API_URL } from './client';
+import { t } from '../i18n';
 
 export type Session = {
   accessToken: string;
@@ -10,15 +11,22 @@ export type Session = {
 
 export type User = { id: string; email: string; name: string | null; createdAt: string };
 
-async function post<T>(rota: string, corpo: unknown): Promise<T> {
-  const res = await fetch(`${API_URL}${rota}`, {
+/** An API failure, carrying the status so callers can tell apart what it means. */
+export type ApiError = Error & { status: number };
+
+async function post<T>(route: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_URL}${route}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(corpo),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
-    throw new Error(mensagem(res.status, (error as { error?: string }).error));
+    const failure = new Error(
+      message(res.status, (error as { error?: string }).error),
+    ) as ApiError;
+    failure.status = res.status;
+    throw failure;
   }
   return res.json() as Promise<T>;
 }
@@ -28,11 +36,11 @@ async function post<T>(rota: string, corpo: unknown): Promise<T> {
  * password: whoever has not proven they own the account does not get to learn
  * whether it exists. This message respects that.
  */
-function mensagem(status: number, codigo?: string): string {
-  if (codigo === 'registration_failed') return 'Não foi possível criar a conta com esse e-mail.';
-  if (status === 401) return 'E-mail ou password incorretos.';
-  if (status === 400) return 'Confira os dados e tente de novo.';
-  return 'Não conseguimos falar com o servidor. Tente de novo.';
+function message(status: number, code?: string): string {
+  if (code === 'registration_failed') return t('signUp.errorEmailTaken');
+  if (status === 401) return t('signUp.errorCredentials');
+  if (status === 400) return t('signUp.errorData');
+  return t('signUp.errorServer');
 }
 
 export const signUp = (email: string, password: string, name?: string) =>
