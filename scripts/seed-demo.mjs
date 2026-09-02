@@ -9,7 +9,9 @@
  *
  *   node scripts/seed-demo.mjs [http://localhost:3000]
  *
- * Local API only. It signs up accounts and writes attempts.
+ * The port is whatever API_PORT says in the repository root .env, which
+ * docker-compose reads too. Local API only: it signs up accounts and writes
+ * attempts.
  */
 const API = process.argv[2] ?? 'http://localhost:3000';
 const PASSWORD = 'demo-questiona-123';
@@ -33,7 +35,8 @@ async function call(path, { body, token, method } = {}) {
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
-  if (!res.ok) throw new Error(`${method ?? 'GET'} ${path} -> ${res.status}`);
+  const verb = method ?? (body ? 'POST' : 'GET');
+  if (!res.ok) throw new Error(`${verb} ${API}${path} -> ${res.status}`);
   const text = await res.text();
   return text ? JSON.parse(text) : {};
 }
@@ -54,7 +57,24 @@ const attempt = (questionId, choice) => ({
   timeMs: 32000 + Math.floor(Math.random() * 56000),
 });
 
+/**
+ * A 404 here means something else owns the port -- another dev server, most
+ * likely. Worth its own message: without it the first failure is a confusing
+ * "auth/register -> 404" from whatever app actually answered.
+ */
+async function requireApi() {
+  try {
+    await call('/v1/taxonomy');
+  } catch (error) {
+    throw new Error(
+      `No Questiona API at ${API} (${error.message}).\n` +
+        'Check API_PORT in the repository root .env, and that `docker compose up -d` is running.',
+    );
+  }
+}
+
 async function main() {
+  await requireApi();
   const probe = await account(`probe-${Date.now()}@exemplo.invalid`, 'Probe');
   const demo = await account(EMAIL, 'Aroldo');
 

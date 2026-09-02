@@ -13,35 +13,44 @@ spoken, not read.
 Start at the repository root; everything after the `cd` runs from `mobile/`.
 
 ```bash
-# 1. the API
+# 1. the API. The port comes from API_PORT in .env, not necessarily 3000.
 docker compose up -d
-curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/v1/taxonomy   # want 200
+PORT=$(grep -E '^API_PORT=' .env | cut -d= -f2)
+PORT=${PORT:-3000}
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:$PORT/v1/taxonomy   # want 200
 
 cd mobile
 
 # 2. a demo account with a history, so the stats screen has charts on camera
-node scripts/seed-demo.mjs
+node scripts/seed-demo.mjs http://localhost:$PORT
 #    -> aroldo@questiona.test / demo-questiona-123
 
-# 3. simulator up, app installed
+# 3. point the app at that same port
+#    DEV_PORT in src/shared/api/client.ts
+
+# 4. simulator up, app installed
 npx react-native run-ios --simulator "iPhone 17 Pro"
 
-# 4. Metro in a second tab (stays off camera)
+# 5. Metro in a second tab (stays off camera)
 npm start
 
-# 5. authenticate once, so Zephyr does not ask mid-take
+# 6. authenticate once, so Zephyr does not ask mid-take
 npm run deploy:ios
 ```
 
 The last one matters. If Zephyr prompts for login during the recording, you lose
 the deploy shot.
 
-**If that `curl` returns 404**, something else owns port 3000 and the app will
-sit on empty screens for the whole take. Free the port, or move both ends:
-`API_PORT=3010 docker compose up -d`, `node scripts/seed-demo.mjs
-http://localhost:3010`, and `DEV_PORT` in `src/shared/api/client.ts`. Check the
-curl again before recording — a debug build points at localhost and never falls
-back to the public API.
+**A 404 there means something else owns that port** -- another dev server, most
+likely -- and the app will sit on empty screens for the whole take. Either free
+the port or move the API: `API_PORT=3010 docker compose up -d`. Whatever port
+wins, `DEV_PORT` in `src/shared/api/client.ts` has to match it, and so does the
+argument to the seed script. A debug build points at localhost and never falls
+back to the public API, so this is worth checking twice before recording.
+
+`docker compose up -d` **starts an existing container without re-reading
+API_PORT**. If you changed the port and it did not take, `docker compose up -d
+--force-recreate` will. `docker compose ps` shows where it actually landed.
 
 **Set the simulator to English.** The app follows the device locale, and the
 whole script below assumes English strings:
