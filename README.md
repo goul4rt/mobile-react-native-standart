@@ -126,11 +126,11 @@ npm run ios        # or npm run android
 ### About the backend
 
 The app reads questions from an API that lives in a separate repository. It is
-**not needed** to evaluate the Zephyr integration: `metro.config.js`,
+**not needed** to run the Zephyr integration: `metro.config.js`,
 `react-native.config.js` and the publishing flow are independent of it.
 
 With no API running, the app opens and shows the connection-failure screen with
-a retry button. That is the intended behaviour, and the `sem-api.yaml` E2E flow
+a retry button. That is the intended behaviour, and the `offline.yaml` E2E flow
 asserts it.
 
 The address lives in `src/shared/api/client.ts`. On the Android emulator the

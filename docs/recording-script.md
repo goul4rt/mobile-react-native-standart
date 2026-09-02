@@ -1,9 +1,9 @@
 # Recording script
 
-Target: 4 to 5 minutes. The task asks for two things on camera — **the
-deployment flow** and **the app running** — so both need to appear in full.
-Scene 6 is the extra one worth the time: it shows a remote being consumed, which
-is what turns "files were published" into "federation works".
+Target: 4 to 5 minutes. Two things have to appear in full — **the deployment
+flow** and **the app running**. Scene 6 is the extra one worth the time: it
+shows a remote being consumed, which is what turns "files were published" into
+"federation works".
 
 Lines in blockquotes are meant to be said out loud. They are written to be
 spoken, not read.
