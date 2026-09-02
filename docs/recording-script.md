@@ -1,6 +1,6 @@
 # Recording script
 
-Target: 4 to 5 minutes. The task asks for two things on camera — **the
+Target: 3 to 4 minutes. The task asks for two things on camera — **the
 deployment flow** and **the app running** — so both need to appear in full.
 
 Lines in blockquotes are meant to be said out loud. They are written to be
@@ -122,45 +122,23 @@ Simulator. Take the short, real path:
 
 No rush here. This is the proof that the published bundle works.
 
-## Scene 6 — Swapping a remote version live (60s) — **the payoff**
+## Scene 6 — The honest limit (30s)
 
-Two versions are already published and differ on screen:
+> "One caveat worth stating. This app publishes four remotes, but it does not
+> consume any — and I did try. Loading a remote back into a React Native app
+> means clearing six undocumented obstacles: the runtime ships Webpack-only
+> syntax that Metro rejects, `process.env` does not survive bundling, nobody
+> creates the federation instance, and there are two bundling commands where the
+> docs mention neither. I got the host bundle building correctly with
+> `bundle-mf-host`, and it still fails from Xcode's build phase with 'Expected
+> virtual module setup to be finished'. That is written up in docs/zephyr.md,
+> section six, with each step reproduced."
 
-| Version | Heading in the Stats tab |
-|---|---|
-| `#39` | "Accuracy by subject" |
-| `#41` | "Accuracy by subject — REMOTE v2" |
+> "So what is ready here is the separation: four independently publishable
+> artifacts, and the import rule that keeps them separable. Nothing under
+> `modules/` imports from another `modules/`."
 
-URLs are in `docs/consuming-remotes.md`. Have them ready to paste.
-
-On the simulator:
-
-1. **Stats** tab — banner reads `○ ./stats from this bundle`
-2. **Profile → Federated module**, paste the **#39** URL, tap *Use this version*
-3. back to **Stats** — banner turns to `● ./stats loaded from Zephyr edge`
-4. **Federated module** again, paste **#41**, tap *Use this version*
-5. back to **Stats** — the heading now reads **"— REMOTE v2"**
-
-> "Same app. I did not rebuild it, reinstall it, or ship anything to a store.
-> I pointed it at a different published version and the screen came from there.
-> That is what Module Federation buys you, and it is why the immutable URL per
-> build matters — rolling back is pointing at the previous one."
-
-6. Tap *Use the bundled screen* to fall back.
-
-> "And when the edge is unreachable, it falls back to the screen compiled into
-> the binary. Federation adds a path, it does not remove the local one."
-
-## Scene 7 — The honest limit (15s)
-
-> "One caveat. The host here is the app itself: it publishes these remotes and
-> loads one back. A production setup would resolve that URL from an environment
-> rather than a text field, and a separate host app would consume remotes it
-> does not publish. The mechanism is the same — registerRemotes, loadRemote,
-> fallback to bundled — but the topology is simpler than a real
-> micro-frontend deployment."
-
-End there.
+End there. Saying where it stops is worth more than pretending it does not.
 
 ---
 

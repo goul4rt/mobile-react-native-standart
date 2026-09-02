@@ -213,7 +213,70 @@ Suggestion: inject the host require **after** RN's environment setup rather than
 at the top of InitializeCore, and detect the dev server to skip the patch when
 no remote is configured.
 
-### 6. Log noise
+### 6. Consuming remotes on React Native: how far I got, and where it stops
+
+Publishing the four exposes works. Loading one back into the running app does
+not, and the failures come in a chain where each one only surfaces after the
+previous is fixed. Every step below was reproduced on RN 0.87 with
+`@module-federation/metro@2.9.0`.
+
+**1. The build dies inside `node_modules`.**
+
+```
+node_modules/@module-federation/runtime-core/dist/utils/load.js
+Invalid call at line 42: import(/* webpackIgnore: true */
+```
+
+The package calls `import(url)` with a variable, behind a Webpack magic comment.
+Metro only accepts dynamic import with a string literal, and the whole build
+fails with `xcodebuild exited 65`. Workaround: a copy of that file with the ESM
+branch replaced by a reject, wired through `resolver.resolveRequest`. The ESM
+path is unreachable on React Native anyway — loading goes through Metro's own
+module registry.
+
+**2. `process.env` does not survive bundling.** Only `NODE_ENV` is substituted,
+so a remote URL set at build time never reaches the running code. It has to be
+written into a source file before bundling.
+
+**3. Nobody creates the runtime instance.** `loadRemote` and `registerRemotes`
+fail with `Please call createInstance first`, and `getInstance()` returns null,
+because `mf:init-host` is not in the bundle.
+
+**4. There are two bundling commands, and the docs mention neither.** The plugin
+prints them in a help message: `bundle-mf-remote` for what gets published, and
+`bundle-mf-host` for the app that consumes. A plain `react-native bundle` — which
+is what `run-ios` calls — skips the federation transformer, so `mf:init-host`
+never lands. Running `bundle-mf-host` by hand does produce a correct bundle:
+`loadRemoteToRegistry` present, remote URL embedded.
+
+**5. `run-ios` does not forward env vars to Xcode.** `BUNDLE_COMMAND` has to go
+through `ios/.xcode.env.local`, which is not versioned.
+
+**6. And there it stops.** With the Xcode build phase calling `bundle-mf-host`:
+
+```
+Expected virtual module setup to be finished
+```
+
+The command works standalone but not from Xcode's build phase, whether invoked
+raw or through the plugin's own `loadMetroConfig`. That is where I stopped.
+
+**What this means in practice.** A React Native app can publish federated
+remotes with this stack — that part is solid, and this project does it. Loading
+them back requires clearing six undocumented obstacles, and the sixth has no
+workaround I could find. The failure messages point at React Native internals,
+at a Node.js entry loader, or at a virtual module system, never at the actual
+cause.
+
+**Suggestions**, in order of value:
+
+1. Document `bundle-mf-host` on the Metro page. It is the single missing piece
+   most people will hit, and it only appears in a CLI help message.
+2. Ship the runtime without Webpack-only syntax, or a React Native build of it.
+3. Make `Expected virtual module setup to be finished` say what setup is missing
+   and which command performs it.
+
+### 7. Log noise
 
 Every build repeats the missing `zephyr:dependencies` warning, even in an app
 with no remotes, where its absence is the correct configuration. The command
