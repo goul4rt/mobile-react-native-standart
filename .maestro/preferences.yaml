@@ -1,50 +1,55 @@
-# Preferências do perfil: tema, tamanho de fonte e idioma do app.
+# Profile preferences: theme, text size and app language.
 appId: org.reactjs.native.example.Gabarita
 ---
 - launchApp:
     clearState: false
+# Restoring the session from storage is async: tapping straight after launch
+# lands on the welcome screen, which has no tabs.
+- extendedWaitUntil:
+    visible:
+      id: 'tab-profile'
+    timeout: 20000
 - tapOn:
     id: 'tab-profile'
-- assertVisible: 'Perfil'
+- assertVisible: 'Profile'
 
-# Tema: trocar para claro muda a tela na hora.
-- assertVisible: 'Tema'
+# Theme: switching to light changes the screen immediately.
+- assertVisible: 'Theme'
 - tapOn:
     id: 'theme-light'
-- takeScreenshot: /tmp/perfil-claro
 - tapOn:
     id: 'theme-dark'
 
-# Tamanho da fonte.
-- assertVisible: 'Tamanho da fonte'
+# Text size.
+- assertVisible: 'Text size'
 - tapOn:
     id: 'scale-xlarge'
-- takeScreenshot: /tmp/perfil-fonte
-
 - tapOn:
     id: 'scale-normal'
 
-# Idioma do app: a interface inteira troca para inglês.
-- assertVisible: 'Idioma do app'
-- tapOn:
-    id: 'app-language-en'
-- assertVisible: 'Profile'
+# App language: the whole interface switches to Portuguese.
 - assertVisible: 'App language'
-- assertVisible: 'Sign out'
-- takeScreenshot: /tmp/perfil-ingles
-
-# A troca vale nas outras abas também, não só nesta tela.
-- tapOn:
-    id: 'tab-home'
-- assertVisible: 'STUDY BY SUBJECT'
-- tapOn:
-    id: 'tab-stats'
-- assertVisible: 'Stats'
-- assertVisible: 'You and others'
-
-# Volta pro português e confirma que persiste.
-- tapOn:
-    id: 'tab-profile'
 - tapOn:
     id: 'app-language-pt'
 - assertVisible: 'Perfil'
+- assertVisible: 'Idioma do app'
+- assertVisible: 'Sair da conta'
+
+# The switch applies to the other tabs too, not just this screen.
+- tapOn:
+    id: 'tab-home'
+- assertVisible: '(?i).*estudar por área.*'
+- tapOn:
+    id: 'tab-stats'
+# The stats screen comes from the Zephyr edge; first open waits on the network.
+- extendedWaitUntil:
+    visible: 'Estatísticas'
+    timeout: 30000
+- assertVisible: 'Você e os outros'
+
+# Back to English, and confirm it sticks.
+- tapOn:
+    id: 'tab-profile'
+- tapOn:
+    id: 'app-language-en'
+- assertVisible: 'Profile'

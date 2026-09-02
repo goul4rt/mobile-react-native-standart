@@ -1,9 +1,14 @@
-# Reportar problema: abre o menu, escolhe um motivo e confirma o agradecimento.
+# Reporting a problem: open the menu, pick a reason, confirm the thank-you.
 appId: org.reactjs.native.example.Gabarita
 ---
 - launchApp:
     clearState: false
-- assertVisible: '.*O que você quer estudar hoje.*'
+# Opens on Home, which lists the subjects. Restoring the session from storage is
+# async, so this waits instead of asserting straight after launch.
+- extendedWaitUntil:
+    visible:
+      id: 'area-MT'
+    timeout: 20000
 - tapOn:
     id: 'area-MT'
 - extendedWaitUntil:
@@ -18,9 +23,9 @@ appId: org.reactjs.native.example.Gabarita
 - tapOn:
     id: 'report'
 
-- assertVisible: 'O que está errado nesta questão?'
-- assertVisible: 'Gabarito errado'
-- tapOn: 'Gabarito errado'
-- assertVisible: 'Vamos revisar essa questão.'
+- assertVisible: "What's wrong with this question?"
+- assertVisible: 'Wrong answer key'
+- tapOn: 'Wrong answer key'
+- assertVisible: "We'll review this question."
 - tapOn: 'OK'
 - assertVisible: '1/10'

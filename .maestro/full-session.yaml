@@ -1,9 +1,14 @@
-# Percorre as 10 questões e confere a tela de resultado.
+# Walks all 10 questions and checks the results screen.
 appId: org.reactjs.native.example.Gabarita
 ---
 - launchApp:
     clearState: false
-- assertVisible: '.*O que você quer estudar hoje.*'
+# Opens on Home, which lists the subjects. Restoring the session from storage is
+# async, so this waits instead of asserting straight after launch.
+- extendedWaitUntil:
+    visible:
+      id: 'area-MT'
+    timeout: 20000
 - tapOn:
     id: 'area-CH'
 - extendedWaitUntil:
@@ -25,19 +30,19 @@ appId: org.reactjs.native.example.Gabarita
       - tapOn:
           id: 'next'
 
-# Fim: soma de acertos e erros tem que fechar em 10.
+# The end: correct plus wrong has to add up to 10.
 - extendedWaitUntil:
-    visible: 'Fim da sessão'
+    visible: 'Session complete'
     timeout: 15000
-- assertVisible: 'acertos'
-- assertVisible: 'erros'
-- assertVisible: 'tempo'
-# Sem 30 respostas na população, a comparação não é publicada.
-- assertVisible: '.*Ainda faltam respostas de outros alunos.*'
-- assertVisible: 'Mais 10 questões'
-- takeScreenshot: /tmp/fim-sessao
+- assertVisible: 'correct'
+- assertVisible: 'wrong'
+- assertVisible: 'time'
+# Without 30 answers in the population, the comparison is not published.
+- assertVisible: '.*We need answers from more students.*'
+- assertVisible: '10 more questions'
 
-# Voltar pra escolha de área e começar outra.
+# Back to the subject picker to start another one.
 - tapOn:
     id: 'change-subject'
-- assertVisible: '.*O que você quer estudar hoje.*'
+- assertVisible:
+    id: 'area-MT'

@@ -1,41 +1,54 @@
-# Flows Maestro
+# Maestro flows
 
 ```bash
-npm run e2e           # todos, exceto o offline
-npm run e2e:offline   # com a API parada
+npm run e2e           # everything except offline
+npm run e2e:offline   # with the API stopped
 ```
 
-Precisa de: simulador aberto, Metro rodando (`npm start`) e a API local em
-`localhost:3000`. Sem a API, só o `offline.yaml` faz sentido.
+Needs: a simulator open, Metro running (`npm start`) and the local API on the
+port `DEV_PORT` in `src/shared/api/client.ts` names. Without the API, only
+`offline.yaml` makes sense.
 
-## Dependência de ordem
+## The flows assert English
 
-Só `onboarding` e `full-cycle` usam `clearState: true`. Os outros abrem com
-`clearState: false` e assumem uma sessão já criada, então **dependem de um deles
-ter passado antes**. Quando o onboarding falha, os cinco restantes falham em
-cascata com "O que você quer estudar hoje não está visível" — o que parece cinco
-defeitos e é um só.
+The app follows the device locale, and these flows are written against the
+English strings. On a simulator set to Portuguese every text assertion fails
+while every `testID` still matches, which reads as a broken app and is a broken
+locale. `preferences.yaml` is the exception on purpose: it switches to
+Portuguese, checks the interface followed, and switches back.
 
-Ao investigar uma falha, rode o flow isolado antes de acreditar no número:
+When a string changes in `src/shared/i18n/translations.ts`, the flow asserting it
+changes too. There is no test tying the two together.
+
+## Order dependency
+
+Only `onboarding` and `full-cycle` use `clearState: true`. The others start with
+`clearState: false` and assume a session already exists, so they **depend on one
+of those having passed first**. When onboarding fails, the remaining five fail in
+cascade with "area-MT is not visible" — which looks like
+five defects and is one.
+
+When investigating a failure, run the flow on its own before believing the count:
 
 ```bash
 maestro test .maestro/onboarding.yaml
 ```
 
-## Duas armadilhas do iOS que já custaram caro aqui
+## Two iOS traps that already cost time here
 
-**O teclado cobre o que está abaixo do campo.** `hideKeyboard` nem sempre basta:
-se o elemento seguinte fica na parte de baixo da tela, use `scrollUntilVisible`
-antes de tocar ou asserir. Foi o que quebrou o toque no checkbox de consentimento.
+**The keyboard covers whatever sits below the field.** `hideKeyboard` is not
+always enough: if the next element is near the bottom of the screen, use
+`scrollUntilVisible` before tapping or asserting. That is what broke the tap on
+the consent checkbox.
 
-**`testID` em `<Text>` aninhado dentro de `<Text>` não existe.** O iOS renderiza
-o parágrafo como um único nó e os filhos somem da árvore de acessibilidade —
-`accessible={false}` no pai não muda isso. Se um elemento precisa ser tocado ou
-verificado, ele tem que ser um `Pressable` de verdade, não um `<Text>` com
-`onPress` dentro de outro texto. Isso vale para o app, não só para o teste: o
-que não está na árvore também não existe para o VoiceOver.
+**A `testID` on a `<Text>` nested inside a `<Text>` does not exist.** iOS renders
+the paragraph as a single node and the children disappear from the accessibility
+tree — `accessible={false}` on the parent does not change that. If an element
+needs to be tapped or checked, it has to be a real `Pressable`, not a `<Text>`
+with `onPress` inside another text. This holds for the app, not just the test:
+what is not in the tree does not exist for VoiceOver either.
 
-Para ver o que o Maestro enxerga de fato:
+To see what Maestro actually sees:
 
 ```bash
 maestro hierarchy | grep -oE '"resource-id" : "[^"]+"' | sort -u

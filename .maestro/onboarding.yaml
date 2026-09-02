@@ -1,19 +1,20 @@
-# Primeiro acesso: abertura -> cadastro com consentimento -> home.
+# First run: welcome -> sign up with consent -> home.
 appId: org.reactjs.native.example.Gabarita
 ---
 - launchApp:
     clearState: true
 
 - assertVisible: 'Questiona'
-- assertVisible: 'Estude por questões do ENEM. Uma de cada vez.'
+- assertVisible: 'Study with ENEM questions. One at a time.'
 - tapOn:
     id: 'create-account'
 
-- assertVisible: 'Criar conta'
+- assertVisible: 'Create account'
 
-# Os documentos que o aceite cita precisam estar alcançáveis na própria tela:
-# sem isso o usuário declara ter lido algo que não tinha como abrir. Verificado
-# antes de tocar nos campos, porque depois o teclado cobre esta parte da tela.
+# The documents the consent line names have to be reachable from the screen
+# itself: without that the user declares having read something they had no way
+# to open. Checked before touching the fields, because the keyboard covers this
+# part of the screen afterwards.
 - assertVisible:
     id: 'link-terms'
 - assertVisible:
@@ -24,7 +25,7 @@ appId: org.reactjs.native.example.Gabarita
 - inputText: 'Ana Souza'
 - tapOn:
     id: 'field-email'
-# E-mail novo a cada execução: cadastrar duas vezes o mesmo dá 409.
+# A fresh email every run: signing up twice with the same one returns 409.
 - inputText: 'ana-${Date.now()}@exemplo.test'
 - tapOn:
     id: 'field-password'
@@ -34,28 +35,30 @@ appId: org.reactjs.native.example.Gabarita
 - assertVisible:
     id: 'field-password'
     text: '.+'
-- hideKeyboard
-
-# LGPD: o botão só liga depois do aceite marcado. Rola até o checkbox primeiro:
-# a linha com os links de documento empurra a dica para fora da área visível.
-# Espera o teclado terminar de recolher: sem isto o checkbox ainda está
-# coberto no instante do toque, e a tela não tem scroll para compensar.
-- waitForAnimationToEnd:
-    timeout: 3000
-- assertVisible: 'O botão ativa quando o aceite é marcado.'
+# LGPD: the button only unlocks after consent.
+#
+# No `hideKeyboard` here. On iOS it swipes down the screen, and with the English
+# strings -- longer than the Portuguese ones -- that swipe lands on the "I
+# already have an account" button at the bottom and navigates away. Scrolling to
+# the checkbox does the same job without touching anything else.
+- scrollUntilVisible:
+    element:
+      id: 'consent'
+    direction: DOWN
+    timeout: 10000
+- assertVisible: 'The button unlocks once you accept.'
 - tapOn:
     id: 'consent'
-- assertNotVisible: 'O botão ativa quando o aceite é marcado.'
+- assertNotVisible: 'The button unlocks once you accept.'
 
-# O botão tem que ser alcançável mesmo com o teclado aberto.
+# The button has to stay reachable even with the keyboard open.
 - tapOn:
     id: 'submit-signup'
 
-# Entrou: home com o primeiro nome e as áreas.
+# Signed in: home with the first name and the subjects.
 - extendedWaitUntil:
-    visible: 'Oi, Ana'
+    visible: 'Hi, Ana'
     timeout: 25000
-- assertVisible: 'ESTUDAR POR ÁREA'
+- assertVisible: '(?i).*study by subject.*'
 - assertVisible:
     id: 'tab-stats'
-- takeScreenshot: /tmp/home

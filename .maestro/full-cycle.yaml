@@ -1,5 +1,5 @@
-# Do cadastro às estatísticas: prova que a resposta sai do app, chega na API e
-# volta como número na aba de estatísticas.
+# From sign-up to stats: proves an answer leaves the app, reaches the API and
+# comes back as a number on the stats tab.
 appId: org.reactjs.native.example.Gabarita
 ---
 - launchApp:
@@ -17,29 +17,39 @@ appId: org.reactjs.native.example.Gabarita
 - waitForAnimationToEnd:
     timeout: 3000
 - inputText: 'senha-de-teste-123'
-- hideKeyboard
-# scrollUntilVisible em vez de tapOn direto: com o teclado recolhendo, o
-# checkbox pode ainda estar fora da área visível no instante do toque.
-# Espera o teclado terminar de recolher: sem isto o checkbox ainda está
-# coberto no instante do toque, e a tela não tem scroll para compensar.
-- waitForAnimationToEnd:
-    timeout: 3000
+# No `hideKeyboard` -- see the note in onboarding.yaml.
+- scrollUntilVisible:
+    element:
+      id: 'consent'
+    direction: DOWN
+    timeout: 10000
 - tapOn:
     id: 'consent'
 - tapOn:
     id: 'submit-signup'
 - extendedWaitUntil:
-    visible: 'Oi, Bruno'
+    visible: 'Hi, Bruno'
     timeout: 25000
 
-# Conta nova: nenhuma estatística ainda.
+# A brand new account: no stats yet. The tab fetches its screen from the Zephyr
+# edge on first open, so this waits on a network round trip, not just a render.
 - tapOn:
     id: 'tab-stats'
-- assertVisible: '.*Responda algumas questões.*'
+- extendedWaitUntil:
+    visible: '.*Answer a few questions.*'
+    timeout: 30000
 
-# Responde uma sessão inteira.
+# Answer a whole session. Home loads the subject list from the API, so the
+# buttons are not there the instant the tab opens -- and the tap itself has to
+# wait for the remote screen to finish mounting, or it gets swallowed.
+- waitForAnimationToEnd:
+    timeout: 5000
 - tapOn:
     id: 'tab-home'
+- extendedWaitUntil:
+    visible:
+      id: 'area-MT'
+    timeout: 20000
 - tapOn:
     id: 'area-MT'
 - extendedWaitUntil:
@@ -60,33 +70,32 @@ appId: org.reactjs.native.example.Gabarita
       - tapOn:
           id: 'next'
 - extendedWaitUntil:
-    visible: 'Fim da sessão'
+    visible: 'Session complete'
     timeout: 15000
-# O botão fica desabilitado enquanto o lote sobe; o texto só volta quando acaba.
+# The button stays disabled while the batch uploads; the label only comes back
+# once it finishes.
 - extendedWaitUntil:
-    visible: 'Voltar pra home'
+    visible: 'Back to home'
     timeout: 20000
 - tapOn:
     id: 'change-subject'
 
-# De volta na home: o cartão de continuar aparece com o que foi respondido.
+# Back home: the continue card shows up with what was answered.
 - extendedWaitUntil:
-    visible: '.*CONTINUAR DE ONDE PAROU.*'
+    visible: '(?i).*pick up where you left off.*'
     timeout: 20000
-- assertVisible: '.*10 respondidas.*'
+- assertVisible: '.*10 answered.*'
 
-# E as estatísticas deixaram de estar vazias.
+# And the stats stopped being empty.
 - tapOn:
     id: 'tab-stats'
 - extendedWaitUntil:
-    visible: 'ACERTO POR ÁREA'
+    visible: '(?i).*accuracy by subject.*'
     timeout: 20000
-- assertVisible: '.*de 10 questões.*'
-- assertVisible: 'questões respondidas'
-- takeScreenshot: /tmp/estatisticas
+- assertVisible: '.*of 10 questions.*'
+- assertVisible: 'questions answered'
 
-# A outra aba respeita a amostra mínima da população.
+# The other tab respects the minimum population sample.
 - tapOn:
     id: 'tab-others'
-- assertVisible: '.*Comparações são sempre com a média geral.*'
-- takeScreenshot: /tmp/comparacao
+- assertVisible: '.*Comparisons are always against the overall average.*'

@@ -1,17 +1,16 @@
-# Com a API fora do ar, o app tem que dizer isso — e não mostrar dado inventado.
+# With the API down, the app has to say so -- and not show invented data.
 appId: org.reactjs.native.example.Gabarita
-# Exige a API derrubada, então fica fora da suíte padrão:
-#   npm run e2e:offline   (com a API parada)
+# Requires the API to be stopped, so it stays out of the default suite:
+#   npm run e2e:offline   (with the API down)
 tags:
   - offline
 ---
 - launchApp:
     clearState: false
 - extendedWaitUntil:
-    visible: '.*Sem internet.*'
+    visible: ".*You're offline.*"
     timeout: 20000
-- assertVisible: '.*Tudo salvo aqui.*'
-# Não pode ser beco sem saída: tem que dar pra tentar de novo sem fechar o app.
+- assertVisible: '.*saved everything here.*'
+# It cannot be a dead end: retrying has to be possible without closing the app.
 - assertVisible:
     id: 'try-again'
-- takeScreenshot: /tmp/sem-api
