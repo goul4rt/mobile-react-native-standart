@@ -103,7 +103,12 @@ export async function fetchTaxonomy(ano?: number): Promise<Taxonomy> {
   const res = await fetch(`${API_URL}/v1/taxonomy${filtroAno}`);
   if (!res.ok) throw new Error(`API respondeu ${res.status}`);
   const data = (await res.json()) as Taxonomy;
-  return { areas: data.areas, skills: data.skills, disciplines: data.disciplines, topics: data.topics };
+  return {
+    areas: data.areas,
+    skills: data.skills,
+    disciplines: data.disciplines ?? [],
+    topics: data.topics ?? [],
+  };
 }
 
 export type Resposta = {

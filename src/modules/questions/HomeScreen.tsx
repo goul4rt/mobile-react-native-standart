@@ -160,6 +160,7 @@ export function HomeScreen({
           testID="filter-by-topic"
           onPress={onFilterByTopic}
           accessibilityRole="button"
+          hitSlop={12}
           style={({ pressed }) => [styles.linkFiltro, { opacity: pressed ? 0.7 : 1 }]}>
           <Text style={[type.label, { color: palette.primary }]}>{t('home.filterByTopic')}</Text>
         </Pressable>
