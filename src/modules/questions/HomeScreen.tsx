@@ -22,7 +22,13 @@ import { usePreferences } from '../../shared/preferences/PreferencesContext';
 import { subjectLabel, t } from '../../shared/i18n';
 import { Button, Centered } from '../../shared/ui-kit/primitives';
 
-export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
+export function HomeScreen({
+  onStudy,
+  onFilterByTopic,
+}: {
+  onStudy: (area: string) => void;
+  onFilterByTopic: () => void;
+}) {
   const { palette, type } = usePreferences();
   const { user, token } = useAuth();
 
@@ -38,7 +44,7 @@ export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
       t ? fetchMinhasEstatisticas(t).catch(() => null) : Promise.resolve(null),
     ]);
     if (!taxonomia) return setError(true);
-    setAreas(taxonomia);
+    setAreas(taxonomia.areas);
     setMinhas(estatisticas);
   }, [token]);
 
@@ -150,6 +156,14 @@ export function HomeScreen({ onStudy }: { onStudy: (area: string) => void }) {
           })}
         </View>
 
+        <Pressable
+          testID="filter-by-topic"
+          onPress={onFilterByTopic}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.linkFiltro, { opacity: pressed ? 0.7 : 1 }]}>
+          <Text style={[type.label, { color: palette.primary }]}>{t('home.filterByTopic')}</Text>
+        </Pressable>
+
         {semana && semana.total > 0 && (
           <View style={[styles.resumo, { backgroundColor: palette.surfaceAlt }]}>
             <Text style={[type.micro, { color: palette.textMuted }]}>{t('home.thisWeek')}</Text>
@@ -178,4 +192,5 @@ const styles = StyleSheet.create({
     padding: space.lg,
   },
   resumo: { borderRadius: radius.lg, padding: space.lg, marginTop: space.xl, gap: space.xs },
+  linkFiltro: { marginTop: space.xl, alignSelf: 'flex-start' },
 });

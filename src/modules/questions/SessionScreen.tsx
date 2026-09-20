@@ -54,7 +54,25 @@ function FadeIn({ children, style }: { children: React.ReactNode; style?: object
   );
 }
 
-export function SessionScreen({ area, onSair }: { area: string; onSair: () => void }) {
+export function SessionScreen({
+  area,
+  skill,
+  ano,
+  discipline,
+  topic,
+  onSair,
+}: {
+  area: string;
+  /** Habilidade escolhida na tela de filtro; sem valor, a sessão cobre a área inteira. */
+  skill?: string;
+  /** Ano da prova escolhido na tela de filtro; sem valor, cobre todos os anos. */
+  ano?: number;
+  /** Disciplina escolhida no filtro por disciplina/tema; sem valor, cobre a área inteira. */
+  discipline?: string;
+  /** Tema escolhido no filtro por disciplina/tema; sem valor, cobre a disciplina inteira. */
+  topic?: string;
+  onSair: () => void;
+}) {
   const { palette, type, examLanguage } = usePreferences();
 
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -73,10 +91,10 @@ export function SessionScreen({ area, onSair }: { area: string; onSair: () => vo
   const posicaoFeedback = useRef(0);
 
   useEffect(() => {
-    fetchSession(area, TAMANHO, linguas)
+    fetchSession(area, TAMANHO, linguas, skill, ano, discipline, topic)
       .then(setQuestions)
       .catch((e: Error) => setError(e.message));
-  }, [area, linguas]);
+  }, [area, linguas, skill, ano, discipline, topic]);
 
   useEffect(() => {
     if (escolha) return;
@@ -142,10 +160,10 @@ export function SessionScreen({ area, onSair }: { area: string; onSair: () => vo
     setEscolha(null);
     setDecorrido(0);
     inicio.current = Date.now();
-    fetchSession(area, TAMANHO, linguas)
+    fetchSession(area, TAMANHO, linguas, skill, ano, discipline, topic)
       .then(setQuestions)
       .catch((e: Error) => setError(e.message));
-  }, [area, linguas]);
+  }, [area, linguas, skill, ano, discipline, topic]);
 
   if (error) {
     return (
