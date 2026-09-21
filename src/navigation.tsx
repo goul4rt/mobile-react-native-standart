@@ -9,6 +9,8 @@ import { Login } from './modules/account/Login';
 import { ProfileScreen } from './modules/account/ProfileScreen';
 import { RemoteStats } from './shared/federation/RemoteStats';
 import { HomeScreen } from './modules/questions/HomeScreen';
+import { SubjectFilterScreen } from './modules/questions/SubjectFilterScreen';
+import { TopicFilterScreen } from './modules/questions/TopicFilterScreen';
 import { SessionScreen } from './modules/questions/SessionScreen';
 import { useAuth } from './shared/auth/AuthContext';
 import { t } from './shared/i18n';
@@ -64,7 +66,10 @@ function Core() {
           tabBarButtonTestID: 'tab-home',
         }}>
         {({ navigation }) => (
-          <HomeScreen onStudy={(area) => navigation.navigate('Session', { area })} />
+          <HomeScreen
+            onStudy={(area) => navigation.navigate('Filter', { area })}
+            onFilterByTopic={() => navigation.navigate('TopicFilter')}
+          />
         )}
       </Tabs.Screen>
       <Tabs.Screen
@@ -122,13 +127,50 @@ export function Navegacao() {
           {/* Keyed by language: tab labels are computed when the route is
               registered, so switching languages requires remounting. */}
           <Stack.Screen key={appLanguage} name="Core" component={Core} />
-          <Stack.Screen name="Session" options={{ presentation: 'fullScreenModal' }}>
-            {({ navigation, route }) => (
-              <SessionScreen
-                area={(route.params as { area: string }).area}
-                onSair={() => navigation.goBack()}
+          <Stack.Screen name="Filter">
+            {({ navigation, route }) => {
+              const { area } = route.params as { area: string };
+              return (
+                <SubjectFilterScreen
+                  area={area}
+                  onVoltar={() => navigation.goBack()}
+                  onIniciar={(skill, ano, discipline, topic) =>
+                    navigation.navigate('Session', { area, skill, ano, discipline, topic })
+                  }
+                />
+              );
+            }}
+          </Stack.Screen>
+          <Stack.Screen name="TopicFilter">
+            {({ navigation }) => (
+              <TopicFilterScreen
+                onVoltar={() => navigation.goBack()}
+                onIniciar={(area, discipline, topic) =>
+                  navigation.navigate('Session', { area, discipline, topic })
+                }
               />
             )}
+          </Stack.Screen>
+          <Stack.Screen name="Session" options={{ presentation: 'fullScreenModal' }}>
+            {({ navigation, route }) => {
+              const { area, skill, ano, discipline, topic } = route.params as {
+                area: string;
+                skill?: string;
+                ano?: number;
+                discipline?: string;
+                topic?: string;
+              };
+              return (
+                <SessionScreen
+                  area={area}
+                  skill={skill}
+                  ano={ano}
+                  discipline={discipline}
+                  topic={topic}
+                  onSair={() => navigation.goBack()}
+                />
+              );
+            }}
           </Stack.Screen>
         </Stack.Navigator>
       ) : (

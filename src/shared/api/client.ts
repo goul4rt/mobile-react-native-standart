@@ -45,6 +45,7 @@ export type Question = {
     year?: number;
     area?: 'LC' | 'CH' | 'CN' | 'MT';
     discipline?: string;
+    skill?: string;
     tags: string[];
   };
 };
@@ -80,12 +81,34 @@ export async function reportarProblema(questionId: string, reason: string): Prom
 
 export type AreaResumo = { code: string; label: string; total: number; years: number[] };
 
-/** Subjects with published questions, straight from the corpus. */
-export async function fetchTaxonomy(): Promise<AreaResumo[]> {
-  const res = await fetch(`${API_URL}/v1/taxonomy`);
+/** Habilidade da matriz do INEP (H1..H30), vinda do cruzamento com os microdados. */
+export type SkillResumo = { area: string; skill: string; total: number; avgDifficulty: number | null };
+export type DisciplineResumo = { area: string; code: string; label: string; total: number };
+export type TopicResumo = { area: string; discipline: string; code: string; label: string; total: number };
+
+export type Taxonomy = {
+  areas: AreaResumo[];
+  skills: SkillResumo[];
+  disciplines: DisciplineResumo[];
+  topics: TopicResumo[];
+};
+
+/**
+ * Áreas e habilidades com questões publicadas, straight from the corpus.
+ * Com `ano`, a contagem por habilidade reflete só aquele ano — as áreas (e a
+ * lista de anos disponíveis) continuam somando o acervo inteiro.
+ */
+export async function fetchTaxonomy(ano?: number): Promise<Taxonomy> {
+  const filtroAno = ano ? `?year=${ano}` : '';
+  const res = await fetch(`${API_URL}/v1/taxonomy${filtroAno}`);
   if (!res.ok) throw new Error(`API respondeu ${res.status}`);
-  const data = (await res.json()) as { areas: AreaResumo[] };
-  return data.areas;
+  const data = (await res.json()) as Taxonomy;
+  return {
+    areas: data.areas,
+    skills: data.skills,
+    disciplines: data.disciplines ?? [],
+    topics: data.topics ?? [],
+  };
 }
 
 export type Resposta = {
@@ -114,9 +137,23 @@ export async function fetchSession(
   limit = 10,
   /** Portuguese plus the chosen foreign language, never just one of them. */
   idiomas: string[] = ['pt'],
+  /** Habilidade da matriz (H1..H30). Sem valor, a sessão cobre a área inteira. */
+  skill?: string,
+  /** Ano da prova. Sem valor, a sessão cobre todos os anos. */
+  ano?: number,
+  /** Disciplina escolhida no filtro por disciplina/tema. Sem valor, cobre a área inteira. */
+  discipline?: string,
+  /** Tema escolhido no filtro por disciplina/tema. Sem valor, cobre a disciplina inteira. */
+  topic?: string,
 ): Promise<Question[]> {
   const lingua = `&language=${idiomas.join(',')}`;
-  const res = await fetch(`${API_URL}/v1/questions?area=${area}&random=true&limit=${limit}${lingua}`);
+  const filtroSkill = skill ? `&skill=${skill}` : '';
+  const filtroAno = ano ? `&year=${ano}` : '';
+  const filtroDisciplina = discipline ? `&discipline=${discipline}` : '';
+  const filtroTema = topic ? `&topic=${topic}` : '';
+  const res = await fetch(
+    `${API_URL}/v1/questions?area=${area}&random=true&limit=${limit}${lingua}${filtroSkill}${filtroAno}${filtroDisciplina}${filtroTema}`,
+  );
   if (!res.ok) throw new Error(`API respondeu ${res.status}`);
   const data = (await res.json()) as { items: Question[] };
   return data.items;
