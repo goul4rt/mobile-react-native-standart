@@ -134,7 +134,9 @@ export function Navegacao() {
                 <SubjectFilterScreen
                   area={area}
                   onVoltar={() => navigation.goBack()}
-                  onIniciar={(skill, ano) => navigation.navigate('Session', { area, skill, ano })}
+                  onIniciar={(skill, ano, discipline, topic) =>
+                    navigation.navigate('Session', { area, skill, ano, discipline, topic })
+                  }
                 />
               );
             }}

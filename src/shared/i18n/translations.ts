@@ -72,6 +72,8 @@ export const pt = {
     filters: 'Filtros',
     yearSection: 'ANO DA PROVA',
     allYears: 'Todos os anos',
+    disciplineSection: 'DISCIPLINA',
+    allDisciplines: 'Todas as disciplinas',
     apply: 'Aplicar filtros',
   },
   topicFilter: {
@@ -237,6 +239,8 @@ export const en: typeof pt = {
     filters: 'Filters',
     yearSection: 'EXAM YEAR',
     allYears: 'All years',
+    disciplineSection: 'DISCIPLINE',
+    allDisciplines: 'All disciplines',
     apply: 'Apply filters',
   },
   topicFilter: {
